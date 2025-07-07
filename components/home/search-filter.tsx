@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import {
+  createParser,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+  useQueryStates,
+} from "nuqs";
 import { Check, ChevronDown, MapPin, Users } from "lucide-react";
 import {
   Command,
@@ -12,7 +18,6 @@ import {
   CommandList,
 } from "../ui/command";
 import { cn } from "@/lib/utils";
-import { type DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -21,8 +26,9 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ChevronsUpDown } from "lucide-react";
-import { format } from "date-fns/format";
+import { format } from "date-fns";
 import { toast } from "sonner";
+import { addDays } from "date-fns";
 
 const SearchFilter = () => {
   return (
@@ -118,10 +124,23 @@ const LocationSelector = () => {
   );
 };
 
+const dateRangeParser = createParser({
+  parse: (value) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  },
+  serialize: (value) => {
+    return format(value, "yyyy-MM-dd");
+  },
+});
+
 const DateRangePicker = () => {
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(2025, 5, 9),
-    to: new Date(2025, 5, 26),
+  const today = new Date();
+  const tomorrow = addDays(today, 1);
+
+  const [{ from, to }, setDateRange] = useQueryStates({
+    from: dateRangeParser.withDefault(today).withOptions({ shallow: false }),
+    to: dateRangeParser.withDefault(tomorrow).withOptions({ shallow: false }),
   });
 
   return (
@@ -130,16 +149,13 @@ const DateRangePicker = () => {
         <Button
           variant={"outline"}
           className={cn(
-            "justify-start text-left font-normal",
-            !dateRange?.from && "text-muted-foreground"
+            "flex-1 justify-start text-left font-normal",
+            !from && "text-muted-foreground"
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {dateRange?.from && dateRange?.to ? (
-            `${format(dateRange.from, "MMM d, yyyy")} - ${format(
-              dateRange.to,
-              "MMM d, yyyy"
-            )}`
+          {from && to ? (
+            `${format(from, "MMM d, yyyy")} - ${format(to, "MMM d, yyyy")}`
           ) : (
             <span>Select Period</span>
           )}
@@ -149,9 +165,16 @@ const DateRangePicker = () => {
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="range"
-          defaultMonth={dateRange?.from}
-          selected={dateRange}
-          onSelect={setDateRange}
+          defaultMonth={from}
+          selected={{ from, to }}
+          onSelect={(dateRange) => {
+            if (dateRange) {
+              setDateRange({
+                from: dateRange.from ? new Date(dateRange.from) : undefined,
+                to: dateRange.to ? new Date(dateRange.to) : undefined,
+              });
+            }
+          }}
           className="rounded-lg border shadow-sm"
         />
       </PopoverContent>
