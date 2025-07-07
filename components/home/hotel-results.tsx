@@ -94,6 +94,9 @@ const HotelCard = () => {
             className="object-cover"
             sizes={"cover"}
           /> */}
+          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400">Image Placeholder</span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1 p-4">
