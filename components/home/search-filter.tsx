@@ -32,7 +32,7 @@ import { addDays } from "date-fns";
 
 const SearchFilter = () => {
   return (
-    <section className="py-4">
+    <section className="py-4 mb-0">
       <div className="flex flex-col gap-2 sm:flex-row">
         <LocationSelector />
         <DateRangePicker />

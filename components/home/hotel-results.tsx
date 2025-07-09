@@ -1,10 +1,11 @@
+"use client";
+
 import React from "react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { BedDouble, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { Card } from "../ui/card";
-import Image from "next/image";
 import { formatCurrency } from "@/lib/format";
 import {
   Pagination,
@@ -15,19 +16,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../ui/pagination";
+import { HotelListResponse } from "@/app/(protected)/home/types";
 
-const HotelResults = () => {
+interface HotelResultsProps {
+  promise: Promise<HotelListResponse>;
+}
+
+const HotelResults = ({ promise }: HotelResultsProps) => {
+  const hotelsData = React.use(promise);
   return (
     <section className="grid auto-rows-min grid-cols-1 gap-4 sm:grid-cols-2 md:col-span-3 lg:grid-cols-3">
       <SearchByName />
-
-      {/* <Suspense
-        key={`hotel-results-${urlParamsString}`}
-        fallback={<HotelSkeletons />}
-      >
-        <HotelList search={search} promise={hotelsPromise} />
-      </Suspense> */}
-      <HotelList />
+      <HotelList hotels={hotelsData.data} />
     </section>
   );
 };
@@ -44,13 +44,15 @@ const SearchByName = () => {
   );
 };
 
-const hotels = Array.from({ length: 9 }, (_, index) => index);
+interface HotelListProps {
+  hotels: HotelListResponse["data"];
+}
 
-const HotelList = () => {
+const HotelList = ({ hotels }: HotelListProps) => {
   return (
     <>
-      {hotels.map((hotel, index) => (
-        <HotelCard key={index} />
+      {hotels.map((hotel) => (
+        <HotelCard key={hotel.id} hotel={hotel} />
       ))}
       <div className="col-span-full mt-8">
         <Pagination>
@@ -82,14 +84,18 @@ const HotelList = () => {
   );
 };
 
-const HotelCard = () => {
+interface HotelCardProps {
+  hotel: HotelListResponse["data"][number];
+}
+
+const HotelCard = ({ hotel }: HotelCardProps) => {
   return (
-    <Link href={`/hotel/1`}>
+    <Link href={`/hotel/${hotel.id}`}>
       <Card className="overflow-hidden py-0 hover:opacity-75">
         <div className="relative aspect-[4/3]">
           {/* <Image
-            src={thumbnail}
-            alt={`${name} hotel`}
+            src={hotel.image}
+            alt={`${hotel.name} hotel`}
             fill
             className="object-cover"
             sizes={"cover"}
@@ -100,20 +106,20 @@ const HotelCard = () => {
         </div>
 
         <div className="flex flex-col gap-1 p-4">
-          <span className="text-yellow-500">★★★★★</span>
-          <h3 className="text-lg font-semibold">Hotel Name</h3>
-          <p className="text-muted-foreground text-sm">Location</p>
+          <span className="text-yellow-500">{"★".repeat(hotel.star)}</span>
+          <h3 className="text-lg font-semibold">{hotel.name}</h3>
+          <p className="text-muted-foreground text-sm">{hotel.location}</p>
 
           <div className="mt-2 flex items-center gap-2 text-sm">
             <BedDouble className="h-4 w-4" />
-            <span>Twin Bed</span>
+            <span>{hotel.bedType}</span>
             <Users className="h-4 w-4" />
-            <span>2 Guests</span>
+            <span>{hotel.guestCount} Guests</span>
           </div>
 
           <div className="mt-2 text-sm">
             <span className="text-muted-foreground">From</span>{" "}
-            <span>{formatCurrency(500_000, "IDR")}</span>
+            <span>{formatCurrency(hotel.price, "IDR")}</span>
           </div>
         </div>
       </Card>
