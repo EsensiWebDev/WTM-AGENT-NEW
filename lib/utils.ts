@@ -19,3 +19,7 @@ export function useDebounce<T>(value: T, delay?: number): T {
 
   return debouncedValue;
 }
+
+export function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
