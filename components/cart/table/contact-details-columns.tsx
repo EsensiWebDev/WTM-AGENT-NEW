@@ -15,14 +15,10 @@ interface GetContactDetailsTableColumnsProps {
   setRowAction: React.Dispatch<
     React.SetStateAction<DataTableRowAction<ContactDetail> | null>
   >;
-  onRemoveGuest: (id: string) => void;
-  onUpdateGuest: (id: string, name: string) => void;
 }
 
 export function getContactDetailsTableColumns({
   setRowAction,
-  onRemoveGuest,
-  onUpdateGuest,
 }: GetContactDetailsTableColumnsProps): ColumnDef<ContactDetail>[] {
   return [
     {

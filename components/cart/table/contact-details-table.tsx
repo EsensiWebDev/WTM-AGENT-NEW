@@ -11,15 +11,9 @@ import { getContactDetailsTableColumns } from "./contact-details-columns";
 
 interface ContactDetailsTableProps {
   data: ContactDetail[];
-  onRemoveGuest: (id: string) => void;
-  onUpdateGuest: (id: string, name: string) => void;
 }
 
-export function ContactDetailsTable({
-  data,
-  onRemoveGuest,
-  onUpdateGuest,
-}: ContactDetailsTableProps) {
+export function ContactDetailsTable({ data }: ContactDetailsTableProps) {
   const [isPending, startTransition] = useTransition();
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<ContactDetail> | null>(null);
@@ -28,10 +22,8 @@ export function ContactDetailsTable({
     () =>
       getContactDetailsTableColumns({
         setRowAction,
-        onRemoveGuest,
-        onUpdateGuest,
       }),
-    [onRemoveGuest, onUpdateGuest]
+    []
   );
 
   const { table } = useDataTable({
@@ -58,7 +50,6 @@ export function ContactDetailsTable({
         open={rowAction?.variant === "delete"}
         onOpenChange={() => setRowAction(null)}
         contactDetail={rowAction?.row.original ?? null}
-        onRemoveGuest={onRemoveGuest}
         showTrigger={false}
         onSuccess={() => rowAction?.row.toggleSelected(false)}
       />

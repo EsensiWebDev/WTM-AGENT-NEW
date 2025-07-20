@@ -1,5 +1,6 @@
 "use client";
 
+import { addUserAsGuest } from "@/app/(protected)/cart/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,13 +20,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { User } from "@/types/user";
-import { Check, Search } from "lucide-react";
-import React from "react";
+import { Check, Loader } from "lucide-react";
+import React, { useTransition } from "react";
+import { toast } from "sonner";
 
 interface SelectUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUserSelect: (user: User) => void;
   users: User[];
   selectedUsers: User[];
 }
@@ -33,11 +34,12 @@ interface SelectUserDialogProps {
 export function SelectUserDialog({
   open,
   onOpenChange,
-  onUserSelect,
   users,
   selectedUsers,
 }: SelectUserDialogProps) {
   const [searchValue, setSearchValue] = React.useState("");
+  const [isPending, startTransition] = useTransition();
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
   const filteredUsers = React.useMemo(() => {
     if (!searchValue) return users;
@@ -48,9 +50,25 @@ export function SelectUserDialog({
     );
   }, [users, searchValue]);
 
-  const handleUserSelect = (user: User) => {
-    onUserSelect(user);
-    setSearchValue("");
+  const handleUserSubmit = () => {
+    if (!selectedUser) return;
+    startTransition(async () => {
+      try {
+        const result = await addUserAsGuest(selectedUser);
+
+        if (result.success) {
+          toast.success(result.message);
+          setSearchValue("");
+          setSelectedUser(null);
+          onOpenChange(false);
+        } else {
+          toast.error(result.message);
+        }
+      } catch (error) {
+        console.error("Error adding user as guest:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    });
   };
 
   const isUserSelected = (userId: string) => {
@@ -69,25 +87,26 @@ export function SelectUserDialog({
 
         <div className="space-y-4">
           <Command className="rounded-lg border shadow-md">
-            <div className="flex items-center border-b px-3 py-2">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <CommandInput
-                placeholder="Search users..."
-                value={searchValue}
-                onValueChange={setSearchValue}
-                className="border-0 focus:ring-0"
-              />
-            </div>
+            <CommandInput
+              placeholder="Search users..."
+              value={searchValue}
+              onValueChange={setSearchValue}
+              className="border-0 focus:ring-0"
+            />
             <CommandList className="max-h-[300px] overflow-y-auto">
               <CommandEmpty>No users found.</CommandEmpty>
               <CommandGroup>
                 {filteredUsers.map((user) => {
-                  const isSelected = isUserSelected(user.id);
+                  const isAlreadySelected = isUserSelected(user.id);
+                  const isActive = selectedUser?.id === user.id;
                   return (
                     <CommandItem
                       key={user.id}
-                      onSelect={() => handleUserSelect(user)}
-                      className="flex items-center gap-3 px-3 py-2"
+                      onSelect={() => setSelectedUser(user)}
+                      className={`flex items-center gap-3 px-3 py-2 ${
+                        isActive ? "bg-accent" : ""
+                      }`}
+                      disabled={isPending}
                     >
                       <div className="flex items-center gap-3 flex-1">
                         <Avatar className="h-8 w-8">
@@ -107,7 +126,9 @@ export function SelectUserDialog({
                           </span>
                         </div>
                       </div>
-                      {isSelected && <Check className="h-4 w-4 text-primary" />}
+                      {isAlreadySelected && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
                     </CommandItem>
                   );
                 })}
@@ -117,8 +138,21 @@ export function SelectUserDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
             Cancel
+          </Button>
+          <Button
+            onClick={handleUserSubmit}
+            disabled={!selectedUser || isPending}
+          >
+            {isPending ? (
+              <Loader className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            Submit
           </Button>
         </DialogFooter>
       </DialogContent>

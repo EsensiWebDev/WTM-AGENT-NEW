@@ -51,45 +51,12 @@ const mockUsers: User[] = [
 export function ContactDetailsSection({
   initialGuests = [],
 }: ContactDetailsSectionProps) {
-  const [guests, setGuests] = React.useState<ContactDetail[]>(initialGuests);
+  // const [guests, setGuests] = React.useState<ContactDetail[]>(initialGuests);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const handleAddGuest = () => {
     setIsDialogOpen(true);
   };
-
-  const handleUserSelect = (user: User) => {
-    const newGuest: ContactDetail = {
-      id: user.id,
-      no: guests.length + 1,
-      name: user.name,
-    };
-    setGuests([...guests, newGuest]);
-    setIsDialogOpen(false);
-  };
-
-  const handleRemoveGuest = (id: string) => {
-    const updatedGuests = guests.filter((guest) => guest.id !== id);
-    // Reorder the numbers
-    const reorderedGuests = updatedGuests.map((guest, index) => ({
-      ...guest,
-      no: index + 1,
-    }));
-    setGuests(reorderedGuests);
-  };
-
-  const handleUpdateGuest = (id: string, name: string) => {
-    setGuests(
-      guests.map((guest) => (guest.id === id ? { ...guest, name } : guest))
-    );
-  };
-
-  // Get selected users based on current guests
-  const selectedUsers = React.useMemo(() => {
-    return mockUsers.filter((user) =>
-      guests.some((guest) => guest.id === user.id)
-    );
-  }, [guests]);
 
   return (
     <div className="space-y-4">
@@ -101,7 +68,7 @@ export function ContactDetailsSection({
         </Button>
       </div>
 
-      {guests.length === 0 ? (
+      {initialGuests.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <p>No guests added yet.</p>
           <p className="text-sm">
@@ -110,18 +77,15 @@ export function ContactDetailsSection({
         </div>
       ) : (
         <ContactDetailsTable
-          data={guests}
-          onRemoveGuest={handleRemoveGuest}
-          onUpdateGuest={handleUpdateGuest}
+          data={initialGuests}
         />
       )}
 
       <SelectUserDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        onUserSelect={handleUserSelect}
         users={mockUsers}
-        selectedUsers={selectedUsers}
+        selectedUsers={mockUsers}
       />
     </div>
   );
