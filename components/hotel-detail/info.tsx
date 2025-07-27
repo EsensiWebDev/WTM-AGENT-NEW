@@ -55,10 +55,10 @@ function HotelNearUs({
       <h2 className="mb-4 text-lg font-bold">Near Us</h2>
       <div className="space-y-3">
         {displayLocations.map((location, index) => (
-          <div key={index} className="flex items-center w-full">
+          <div key={index} className="flex w-full items-center">
             <MapPin size={16} className="mr-2" />
             <span className="text-sm font-medium">{location.name}</span>
-            <span className="text-xs text-muted-foreground ml-auto">
+            <span className="text-muted-foreground ml-auto text-xs">
               ({location.distance})
             </span>
           </div>
@@ -122,7 +122,7 @@ export function HotelInfo({
 }: HotelInfoProps) {
   return (
     <>
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 mb-10">
+      <div className="mb-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
         <div className="flex flex-col gap-1">
           <span className="text-yellow-500">{generateStars(rating)}</span>
           <h1 className="text-2xl font-bold">{name}</h1>
@@ -133,13 +133,13 @@ export function HotelInfo({
           {isPromoted && (
             <Badge
               variant="outline"
-              className="text-xs bg-blue-100 text-blue-700 rounded px-2 py-0.5"
+              className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700"
             >
               3D2YIBIS4U
             </Badge>
           )}
           {promoText && (
-            <span className="text-xs text-green-600 font-medium">
+            <span className="text-xs font-medium text-green-600">
               {promoText}
             </span>
           )}

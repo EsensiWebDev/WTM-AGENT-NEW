@@ -1,18 +1,9 @@
 "use client";
 
-import React from "react";
-import { Input } from "@/components/ui/input";
+import { HotelListResponse } from "@/app/(protected)/home/types";
 import { Button } from "@/components/ui/button";
-import {
-  BedDouble,
-  ChevronsLeft,
-  ChevronsRight,
-  Search,
-  Users,
-} from "lucide-react";
-import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/format";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -21,8 +12,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { HotelListResponse } from "@/app/(protected)/home/types";
+import { formatCurrency } from "@/lib/format";
+import {
+  BedDouble,
+  ChevronsLeft,
+  ChevronsRight,
+  Search,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
 import { parseAsInteger, useQueryState } from "nuqs";
+import React from "react";
 
 interface HotelResultsProps {
   promise: Promise<HotelListResponse>;
@@ -152,7 +152,7 @@ interface HotelCardProps {
 
 const HotelCard = ({ hotel }: HotelCardProps) => {
   return (
-    <Link href={`/hotel/${hotel.id}`}>
+    <Link href={`/hotel-detail`}>
       <Card className="overflow-hidden py-0 hover:opacity-75">
         <div className="relative aspect-[4/3]">
           {/* <Image
@@ -162,7 +162,7 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
             className="object-cover"
             sizes={"cover"}
           /> */}
-          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
             <span className="text-gray-400">Image Placeholder</span>
           </div>
         </div>
