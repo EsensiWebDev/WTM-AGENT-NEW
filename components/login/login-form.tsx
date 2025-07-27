@@ -113,7 +113,7 @@ export function LoginForm({
           </Button>
 
           <a
-            href="#"
+            href="/register"
             className="text-muted-foreground block text-center text-sm underline-offset-4 hover:underline"
           >
             Create New Account
