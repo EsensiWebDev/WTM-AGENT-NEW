@@ -6,7 +6,7 @@ export interface Hotel {
   star: number;
   bedType: string;
   guestCount: number;
-  image?: string;
+  image: string;
 }
 
 export interface HotelListResponse {

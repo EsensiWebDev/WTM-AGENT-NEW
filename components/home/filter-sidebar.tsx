@@ -1,5 +1,9 @@
 "use client";
 
+import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { CheckedState } from "@radix-ui/react-checkbox";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -7,21 +11,17 @@ import {
   useQueryState,
   useQueryStates,
 } from "nuqs";
-import React, { useState } from "react";
-import { Card } from "../ui/card";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Card, CardHeader } from "../ui/card";
 import { Checkbox } from "../ui/checkbox";
+import { Slider } from "../ui/slider";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { Button } from "../ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
-import { Slider } from "../ui/slider";
-import { CheckedState } from "@radix-ui/react-checkbox";
 
 const DISTRICT_OPTIONS = [
   { id: "jakarta", name: "Jakarta" },
@@ -44,7 +44,7 @@ function DistrictCard() {
     "districts",
     parseAsArrayOf(parseAsString)
       .withDefault([])
-      .withOptions({ shallow: false })
+      .withOptions({ shallow: false }),
   );
 
   const handleDistrictChange = (districtId: string) => {
@@ -60,16 +60,17 @@ function DistrictCard() {
     : DISTRICT_OPTIONS.slice(0, 6);
 
   return (
-    <Card className={"gap-0 p-4"}>
-      <h3 className="mb-4 font-medium">District</h3>
-      <div className="grid grid-cols-3 gap-2">
+    <Card className={"gap-0 rounded p-0 pb-4"}>
+      <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+        <h3 className="font-medium">District / City</h3>
+      </CardHeader>
+      <div className="grid grid-cols-3 gap-2 px-4">
         {displayedDistricts.map((d) => (
           <div
             key={d.id}
             className={cn(
-              "border-input bg-background ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
-              selectedDistricts?.includes(d.id) &&
-                "bg-accent text-accent-foreground"
+              "border-input bg-background ring-offset-background hover:bg-primary/90 focus-visible:ring-ring flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+              selectedDistricts?.includes(d.id) && "bg-primary text-white",
             )}
           >
             <Checkbox
@@ -126,24 +127,28 @@ function PriceRangeCard() {
   });
 
   return (
-    <Card className={"gap-0 p-4"}>
-      <h3 className="mb-4 font-medium">Price</h3>
-      <Slider
-        defaultValue={[minPrice, maxPrice]}
-        max={15000000}
-        min={0}
-        step={100000}
-        className={"py-2"}
-        onValueChange={async (e) => {
-          await setPrices({
-            minPrice: e[0],
-            maxPrice: e[1],
-          });
-        }}
-      />
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span>{formatCurrency(minPrice, "IDR")}</span>
-        <span>{formatCurrency(maxPrice, "IDR")}</span>
+    <Card className={"gap-0 rounded p-0 pb-4"}>
+      <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+        <h3 className="font-medium">Price</h3>
+      </CardHeader>
+      <div className="px-4">
+        <Slider
+          defaultValue={[minPrice, maxPrice]}
+          max={15000000}
+          min={0}
+          step={100000}
+          className={"py-2"}
+          onValueChange={async (e) => {
+            await setPrices({
+              minPrice: e[0],
+              maxPrice: e[1],
+            });
+          }}
+        />
+        <div className="mt-2 flex items-center justify-between text-sm">
+          <span>{formatCurrency(minPrice, "IDR")}</span>
+          <span>{formatCurrency(maxPrice, "IDR")}</span>
+        </div>
       </div>
     </Card>
   );
@@ -154,13 +159,15 @@ function StarRatingCard() {
     "star",
     parseAsArrayOf(parseAsString)
       .withDefault([])
-      .withOptions({ shallow: false })
+      .withOptions({ shallow: false }),
   );
 
   return (
-    <Card className={"gap-0 p-4"}>
-      <h3 className="mb-4 font-medium">Hotel Classification</h3>
-      <div className="space-y-2">
+    <Card className={"gap-0 rounded p-0 pb-4"}>
+      <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+        <h3 className="font-medium">Hotel Classification</h3>
+      </CardHeader>
+      <div className="space-y-2 px-4">
         {Array.from({ length: 5 }, (_, i) => {
           const starValue = (i + 1).toString();
           return (
@@ -209,13 +216,15 @@ export function BedTypeCard() {
     "bedType",
     parseAsArrayOf(parseAsString)
       .withDefault([])
-      .withOptions({ shallow: false })
+      .withOptions({ shallow: false }),
   );
 
   return (
-    <Card className="gap-0 p-4">
-      <h3 className="mb-4 font-medium">Bed Type</h3>
-      <div className="space-y-2">
+    <Card className="gap-0 rounded p-0 pb-4">
+      <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+        <h3 className="font-medium">Hotel Classification</h3>
+      </CardHeader>
+      <div className="space-y-2 px-4">
         {BEDTYPES.map((type) => (
           <label className="flex items-center gap-2" key={type.id}>
             <Checkbox
@@ -235,20 +244,51 @@ export function BedTypeCard() {
   );
 }
 
+function BedroomTypeCard() {
+  const [bedRoomType, setBedRoomType] = useQueryState(
+    "bedRoomType",
+    parseAsArrayOf(parseAsString)
+      .withDefault([])
+      .withOptions({ shallow: false }),
+  );
+
+  return (
+    <Card className={"gap-0 rounded p-0 pb-4"}>
+      <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+        <h3 className="font-medium">Bedroom Type</h3>
+      </CardHeader>
+      <div className="space-y-2 px-4">
+        {Array.from({ length: 3 }, (_, i) => {
+          const bedValue = (i + 1).toString();
+          return (
+            <label key={bedValue} className="flex items-center gap-2">
+              <Checkbox
+                checked={bedRoomType.includes(bedValue)}
+                onCheckedChange={(checked: CheckedState) => {
+                  return checked
+                    ? setBedRoomType([...bedRoomType, bedValue])
+                    : setBedRoomType(
+                        bedRoomType.filter((value) => value !== bedValue),
+                      );
+                }}
+              />
+              <span>{bedValue} Bedroom</span>
+            </label>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 const FilterSidebar = () => {
   return (
     <aside className="space-y-6 md:space-y-6">
       <DistrictCard />
       <PriceRangeCard />
-      {/* <Suspense
-        key={`filter-sidebar-${urlParamsString}`}
-        fallback={<Skeleton className="h-[192px] w-full rounded-xl" />}
-      >
-        <StarRatingCard promise={starRatingsPromise} />
-      </Suspense> */}
       <StarRatingCard />
-
       <BedTypeCard />
+      <BedroomTypeCard />
     </aside>
   );
 };

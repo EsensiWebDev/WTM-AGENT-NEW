@@ -1,6 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { addDays, format } from "date-fns";
+import {
+  CalendarIcon,
+  Check,
+  ChevronDown,
+  ChevronsUpDown,
+  MapPin,
+  Users,
+} from "lucide-react";
 import {
   createParser,
   parseAsInteger,
@@ -8,7 +24,8 @@ import {
   useQueryState,
   useQueryStates,
 } from "nuqs";
-import { Check, ChevronDown, MapPin, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Command,
   CommandEmpty,
@@ -17,26 +34,16 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, ChevronsUpDown } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { addDays } from "date-fns";
 
 const SearchFilter = () => {
   return (
-    <section className="py-4 mb-0">
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <LocationSelector />
-        <DateRangePicker />
-        <GuestCounter />
+    <section className="mb-0 py-4">
+      <div className="mx-4 rounded border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <LocationSelector />
+          <DateRangePicker />
+          <GuestCounter />
+        </div>
       </div>
     </section>
   );
@@ -76,7 +83,7 @@ const LocationSelector = () => {
           variant={"outline"}
           role={"combobox"}
           aria-expanded={open}
-          className={"flex-1 justify-between"}
+          className={"flex-1 justify-between bg-gray-200"}
         >
           <div className={"flex items-center gap-2"}>
             <MapPin className={"h-4 w-4"} />
@@ -111,7 +118,7 @@ const LocationSelector = () => {
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === place.value ? "opacity-100" : "opacity-0"
+                      value === place.value ? "opacity-100" : "opacity-0",
                     )}
                   />
                 </CommandItem>
@@ -149,8 +156,8 @@ const DateRangePicker = () => {
         <Button
           variant={"outline"}
           className={cn(
-            "flex-1 justify-start text-left font-normal",
-            !from && "text-muted-foreground"
+            "flex-1 justify-start bg-gray-200 text-left font-normal",
+            !from && "text-muted-foreground",
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -241,7 +248,10 @@ const GuestCounter = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={"outline"} className={"flex-1 justify-between"}>
+        <Button
+          variant={"outline"}
+          className={"flex-1 justify-between bg-gray-200"}
+        >
           <div className={"flex items-center gap-2"}>
             <Users className={"h-4 w-4"} />
             <span>

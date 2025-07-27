@@ -13,13 +13,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatCurrency } from "@/lib/format";
-import {
-  BedDouble,
-  ChevronsLeft,
-  ChevronsRight,
-  Search,
-  Users,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { parseAsInteger, useQueryState } from "nuqs";
 import React from "react";
@@ -42,8 +37,12 @@ const HotelResults = ({ promise }: HotelResultsProps) => {
 const SearchByName = () => {
   return (
     <div className="col-span-1 flex gap-2 sm:col-span-2 lg:col-span-3">
-      <Input placeholder={"Search Hotel Name Here..."} role="search" />
-      <Button>
+      <Input
+        className="rounded bg-white"
+        placeholder={"Search Hotel Name Here..."}
+        role="search"
+      />
+      <Button className="rounded">
         <Search className="h-4 w-4" />
         <div className="hidden sm:inline">Search</div>
       </Button>
@@ -153,18 +152,15 @@ interface HotelCardProps {
 const HotelCard = ({ hotel }: HotelCardProps) => {
   return (
     <Link href={`/hotel-detail`}>
-      <Card className="overflow-hidden py-0 hover:opacity-75">
-        <div className="relative aspect-[4/3]">
-          {/* <Image
+      <Card className="gap-0 overflow-hidden rounded py-0 hover:opacity-75">
+        <div className="relative aspect-[2/1]">
+          <Image
             src={hotel.image}
             alt={`${hotel.name} hotel`}
             fill
             className="object-cover"
             sizes={"cover"}
-          /> */}
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-            <span className="text-gray-400">Image Placeholder</span>
-          </div>
+          />
         </div>
 
         <div className="flex flex-col gap-1 p-4">
@@ -172,16 +168,21 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
           <h3 className="text-lg font-semibold">{hotel.name}</h3>
           <p className="text-muted-foreground text-sm">{hotel.location}</p>
 
-          <div className="mt-2 flex items-center gap-2 text-sm">
+          {/* <div className="mt-2 flex items-center gap-2 text-sm">
             <BedDouble className="h-4 w-4" />
             <span>{hotel.bedType}</span>
             <Users className="h-4 w-4" />
             <span>{hotel.guestCount} Guests</span>
-          </div>
+          </div> */}
 
           <div className="mt-2 text-sm">
-            <span className="text-muted-foreground">From</span>{" "}
-            <span>{formatCurrency(hotel.price, "IDR")}</span>
+            <div className="text-xs">
+              Start from{" "}
+              <span className="text-base font-semibold">
+                {formatCurrency(hotel.price, "IDR")}
+              </span>
+            </div>
+            <span className="text-xs leading-relaxed">per room, per night</span>
           </div>
         </div>
       </Card>

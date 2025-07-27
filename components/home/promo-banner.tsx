@@ -45,7 +45,7 @@ export function PromoBanner() {
         <CarouselContent>
           {promoData.map((promo) => (
             <CarouselItem key={promo.id} className="md:basis-1/1">
-              <div className="relative aspect-[3/1] overflow-hidden rounded-lg">
+              <div className="relative aspect-[3/1] overflow-hidden rounded">
                 <Image
                   src={promo.image}
                   alt="Hotel promotional image"
