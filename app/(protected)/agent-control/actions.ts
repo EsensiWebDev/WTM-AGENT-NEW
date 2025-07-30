@@ -1,7 +1,7 @@
 "use server";
 
-import { CreateAgentSchema } from "@/components/dashboard/account/agent-control/dialog/create-agent-control-dialog";
-import { EditAgentSchema } from "@/components/dashboard/account/agent-control/dialog/edit-agent-control-dialog";
+import { CreateAgentSchema } from "@/components/agent-control/dialog/create-agent-control-dialog";
+import { EditAgentSchema } from "@/components/agent-control/dialog/edit-agent-control-dialog";
 
 export async function updateAgentStatus(agentId: string, status: string) {
   console.log("Update Agent Status");

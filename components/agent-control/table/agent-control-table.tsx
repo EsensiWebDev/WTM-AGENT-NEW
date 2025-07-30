@@ -3,8 +3,8 @@
 import {
   getCompanyOptions,
   getData,
-} from "@/app/(dashboard)/account/agent-control/fetch";
-import { AgentControl } from "@/app/(dashboard)/account/agent-control/types";
+} from "@/app/(protected)/agent-control/fetch";
+import { AgentControl } from "@/app/(protected)/agent-control/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
@@ -20,7 +20,7 @@ interface AgentControlTableProps {
   promises: Promise<
     [
       Awaited<ReturnType<typeof getData>>,
-      Awaited<ReturnType<typeof getCompanyOptions>>
+      Awaited<ReturnType<typeof getCompanyOptions>>,
     ]
   >;
 }
@@ -37,7 +37,7 @@ const AgentControlTable = ({ promises }: AgentControlTableProps) => {
         setRowAction,
         companyOptions,
       }),
-    []
+    [],
   );
 
   const { table } = useDataTable({

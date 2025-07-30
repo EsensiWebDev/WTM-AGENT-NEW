@@ -1,5 +1,5 @@
 import { SearchParams } from "@/types";
-import { HistoryBookingTableResponse } from "./types";
+import { HistoryBooking, HistoryBookingTableResponse } from "./types";
 
 export const getData = async ({
   searchParams,
@@ -8,7 +8,7 @@ export const getData = async ({
 }): Promise<HistoryBookingTableResponse> => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const data = [
+  const data: HistoryBooking[] = [
     {
       id: "1",
       number: 1,
