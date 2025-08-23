@@ -69,7 +69,7 @@ function DistrictCard() {
           <div
             key={d.id}
             className={cn(
-              "border-input bg-background ring-offset-background hover:bg-primary/90 focus-visible:ring-ring flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+              "border-input bg-primary ring-offset-priomary hover:bg-primary/90 focus-visible:ring-ring flex items-center justify-center rounded-md border px-3 py-2 text-sm text-white transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
               selectedDistricts?.includes(d.id) && "bg-primary text-white",
             )}
           >

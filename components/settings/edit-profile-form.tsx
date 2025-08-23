@@ -29,7 +29,7 @@ const profileSchema = z.object({
     .min(1, "Phone number is required")
     .regex(
       /^(\+62|62|0)?8[1-9][0-9]{6,9}$/,
-      "Please enter a valid phone number"
+      "Please enter a valid phone number",
     ),
 });
 
@@ -74,7 +74,7 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
         <div className="flex items-start gap-8">
           <div className="min-w-[180px] font-medium">Edit Profile</div>
           <div className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="username"
@@ -84,7 +84,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
                       Username
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter username" {...field} />
+                      <Input
+                        placeholder="Enter username"
+                        className="bg-gray-200"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -99,7 +103,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
                       First Name
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter first name" {...field} />
+                      <Input
+                        placeholder="Enter first name"
+                        className="bg-gray-200"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,7 +122,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
                       Last Name
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter last name" {...field} />
+                      <Input
+                        placeholder="Enter last name"
+                        className="bg-gray-200"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +141,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
                       Agent Company
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter agent company" {...field} />
+                      <Input
+                        placeholder="Enter agent company"
+                        className="bg-gray-200"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -144,7 +160,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
                       Phone Number
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter phone number" {...field} />
+                      <Input
+                        placeholder="Enter phone number"
+                        className="bg-gray-200"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

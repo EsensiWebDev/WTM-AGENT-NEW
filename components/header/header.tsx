@@ -3,9 +3,9 @@
 import { Menu, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { Logo } from "../logo";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Logo } from "../logo";
 import { NavUser } from "./nav-user";
 
 const menuItems = [
@@ -45,7 +45,7 @@ export const Header = () => {
                     <li key={index}>
                       <Link
                         href={item.href}
-                        className="hover:text-accent-foreground block font-semibold duration-150"
+                        className="block font-semibold duration-150"
                       >
                         <span>{item.name}</span>
                       </Link>
@@ -106,7 +106,7 @@ export const Header = () => {
                       <li key={index}>
                         <Link
                           href={item.href}
-                          className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                          className="text-muted-foreground block duration-150"
                         >
                           <span>{item.name}</span>
                         </Link>

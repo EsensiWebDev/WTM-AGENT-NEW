@@ -27,7 +27,7 @@ const AccountSettingPage = async () => {
           </Avatar>
           <Button
             size="icon"
-            className="absolute -bottom-4 -right-4 bg-[#2d3e3f] text-white rounded-full"
+            className="absolute -right-4 -bottom-4 rounded-full bg-[#2d3e3f] text-white"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -84,6 +84,7 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
                         <Input
                           type="password"
                           placeholder="Enter current password"
+                          className="bg-gray-200"
                           {...field}
                         />
                       </FormControl>
@@ -103,6 +104,7 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
                         <Input
                           type="password"
                           placeholder="Enter new password"
+                          className="bg-gray-200"
                           {...field}
                         />
                       </FormControl>
@@ -122,6 +124,7 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
                         <Input
                           type="password"
                           placeholder="Confirm new password"
+                          className="bg-gray-200"
                           {...field}
                         />
                       </FormControl>

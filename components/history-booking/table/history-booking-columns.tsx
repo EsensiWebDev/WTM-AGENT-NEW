@@ -10,8 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DataTableRowAction } from "@/types/data-table";
+import {
+  IconCloudUpload,
+  IconEye,
+  IconFileDescription,
+  IconNote,
+  IconReceipt,
+} from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Ellipsis, EyeIcon, FileText, Receipt, StickyNote } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 import React from "react";
 
 interface GetHistoryBookingTableColumnsProps {
@@ -81,7 +88,7 @@ export function getHistoryBookingTableColumns({
             color = "bg-red-100 text-red-700 border-red-200";
             label = "Rejected";
         }
-        return <Badge className={`font-medium border ${color}`}>{label}</Badge>;
+        return <Badge className={`border font-medium ${color}`}>{label}</Badge>;
       },
       enableHiding: false,
       meta: {
@@ -115,7 +122,7 @@ export function getHistoryBookingTableColumns({
             color = "bg-red-100 text-red-700 border-red-200";
             label = "Unpaid";
         }
-        return <Badge className={`font-medium border ${color}`}>{label}</Badge>;
+        return <Badge className={`border font-medium ${color}`}>{label}</Badge>;
       },
       enableHiding: false,
       meta: {
@@ -138,7 +145,7 @@ export function getHistoryBookingTableColumns({
               <Button
                 aria-label="Open menu"
                 variant="ghost"
-                className="flex size-8 p-0 data-[state=open]:bg-muted"
+                className="data-[state=open]:bg-muted flex size-8 p-0"
               >
                 <Ellipsis className="size-4" aria-hidden="true" />
               </Button>
@@ -147,23 +154,32 @@ export function getHistoryBookingTableColumns({
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: "invoice" })}
               >
-                <FileText className="mr-2 h-4 w-4" /> View Invoice
+                <IconFileDescription className="mr-2 h-4 w-4" /> View Invoice
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "receipt" })}
-              >
-                <Receipt className="mr-2 h-4 w-4" /> View Receipt
-              </DropdownMenuItem>
+              {row.original.paymentStatus === "paid" && (
+                <DropdownMenuItem
+                  onSelect={() => setRowAction({ row, variant: "receipt" })}
+                >
+                  <IconReceipt className="mr-2 h-4 w-4" /> View Receipt
+                </DropdownMenuItem>
+              )}
+              {row.original.paymentStatus === "unpaid" && (
+                <DropdownMenuItem
+                  onSelect={() => setRowAction({ row, variant: "receipt" })}
+                >
+                  <IconCloudUpload className="mr-2 h-4 w-4" /> Upload Receipt
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: "notes" })}
               >
-                <StickyNote className="mr-2 h-4 w-4" /> View Notes
+                <IconNote className="mr-2 h-4 w-4" /> View Notes
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: "detail" })}
               >
-                <EyeIcon className="mr-2 h-4 w-4" /> View Detail
+                <IconEye className="mr-2 h-4 w-4" /> View Detail
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

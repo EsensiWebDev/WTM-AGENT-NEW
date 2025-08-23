@@ -3,6 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -14,9 +21,11 @@ import {
   Check,
   ChevronDown,
   ChevronsUpDown,
+  CirclePercent,
   MapPin,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import {
   createParser,
   parseAsInteger,
@@ -43,6 +52,7 @@ const SearchFilter = () => {
           <LocationSelector />
           <DateRangePicker />
           <GuestCounter />
+          <PromoButton />
         </div>
       </div>
     </section>
@@ -306,6 +316,93 @@ const GuestCounter = () => {
         </div>
       </PopoverContent>
     </Popover>
+  );
+};
+
+// Mock promo hotels data
+const promoHotels = [
+  {
+    id: 1,
+    name: "Ibis Hotel & Convention Bali",
+    roomType: "Business Suite Room for 2 Nights",
+    location: "Bali",
+  },
+  {
+    id: 2,
+    name: "Atria Hotel Bali",
+    roomType: "Twin Room for 2 Nights",
+    location: "Bali",
+  },
+  {
+    id: 3,
+    name: "Grand Hyatt Jakarta",
+    roomType: "Deluxe Room for 3 Nights",
+    location: "Jakarta",
+  },
+  {
+    id: 4,
+    name: "Shangri-La Surabaya",
+    roomType: "Executive Suite for 2 Nights",
+    location: "Surabaya",
+  },
+];
+
+const PromoButton = () => {
+  const [open, setOpen] = useState(false);
+  const [filteredHotels, setFilteredHotels] = useState(promoHotels);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <CirclePercent className="mr-2 h-4 w-4" />
+          Find Your Promo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[80vh] overflow-y-auto bg-white sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle className="text-center text-xl font-semibold">
+            Find Your Promo
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
+          {/* Promo Code Input */}
+          <div className="space-y-2">
+            <div className="rounded-lg bg-gray-100 p-3">
+              <p className="text-sm font-medium text-gray-700">
+                Code: PROMOWTM15
+              </p>
+            </div>
+          </div>
+
+          {/* Hotel List */}
+          <div className="space-y-4">
+            {filteredHotels.length > 0 ? (
+              filteredHotels.map((hotel) => (
+                <div
+                  key={hotel.id}
+                  className="rounded-lg p-4 transition-shadow hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-semibold">{hotel.name}</h3>
+                      <p className="text-sm text-gray-600">{hotel.roomType}</p>
+                    </div>
+                    <Link href="/hotel-detail">
+                      <Button className="px-6 py-2 text-white">Select</Button>
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-gray-500">
+                <p>No hotels found for the entered promo code.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

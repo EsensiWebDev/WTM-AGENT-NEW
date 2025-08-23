@@ -3,13 +3,13 @@ import type {
   RoomOption,
 } from "@/app/(protected)/hotel-detail/types";
 import {
-  Bed,
-  ChevronRight,
-  Cigarette,
-  CigaretteOff,
-  Square,
-  Users,
-} from "lucide-react";
+  IconArrowAutofitWidth,
+  IconBed,
+  IconFriends,
+  IconSmoking,
+  IconSmokingNo,
+} from "@tabler/icons-react";
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "../ui/button";
@@ -129,11 +129,11 @@ function RoomFeatures({
 
   const getIcon = (iconName: string) => {
     const icons = {
-      Square: <Square className="h-5 w-5" />,
-      Users: <Users className="h-5 w-5" />,
-      Cigarette: <Cigarette className="h-5 w-5" />,
-      CigaretteOff: <CigaretteOff className="h-5 w-5" />,
-      Bed: <Bed className="h-5 w-5" />,
+      Square: <IconArrowAutofitWidth className="h-5 w-5" />,
+      Users: <IconFriends className="h-5 w-5" />,
+      Cigarette: <IconSmoking className="h-5 w-5" />,
+      CigaretteOff: <IconSmokingNo className="h-5 w-5" />,
+      Bed: <IconBed className="h-5 w-5" />,
     };
     return icons[iconName as keyof typeof icons] || null;
   };
