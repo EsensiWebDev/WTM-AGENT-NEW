@@ -3,7 +3,9 @@ export interface AccountProfile {
   firstName: string;
   lastName: string;
   agentCompany: string;
+  email?: string; // Display-only field
   phoneNumber: string;
+  kakaoTalkId: string;
   profileImage?: string;
 }
 

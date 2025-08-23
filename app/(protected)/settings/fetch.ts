@@ -7,6 +7,8 @@ export async function fetchAccountProfile(): Promise<AccountProfile> {
   // Return mock data based on the current page content
   return {
     username: "raffiwtm12",
+    email: "raffi@esensi.com",
+    kakaoTalkId: "raffi_kakao",
     firstName: "Muhammad",
     lastName: "Abduraffi",
     agentCompany: "Esensi Digital",

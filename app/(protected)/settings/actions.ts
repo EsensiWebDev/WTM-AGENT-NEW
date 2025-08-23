@@ -1,3 +1,5 @@
+"use server";
+
 import {
   AccountProfile,
   AccountSettingResponse,
@@ -6,17 +8,20 @@ import {
 
 // Simulate updating account profile
 export async function updateAccountProfile(
-  input: AccountProfile
+  input: AccountProfile,
 ): Promise<AccountSettingResponse> {
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  console.log(input);
+
   // Simulate success response
   return { success: true, message: "Profile updated successfully" };
 }
 
 // Simulate changing password
 export async function changePassword(
-  input: PasswordChange
+  input: PasswordChange,
 ): Promise<AccountSettingResponse> {
   // Simulate API call delay
   await new Promise((resolve) => setTimeout(resolve, 1000));

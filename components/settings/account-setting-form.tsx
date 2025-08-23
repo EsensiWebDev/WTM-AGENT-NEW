@@ -67,83 +67,78 @@ const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="mb-8 flex items-start gap-8">
-          <div className="min-w-[180px] font-medium">Account Setting</div>
-          <div className="flex-1">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">
-                        Current Password
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter current password"
-                          className="bg-gray-200"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">
-                        New Password
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter new password"
-                          className="bg-gray-200"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">
-                        Confirm New Password
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Confirm new password"
-                          className="bg-gray-200"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <Button className="mt-2" type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <Loader
-                    className="mr-2 h-4 w-4 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                Change Password
-              </Button>
-            </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Current Password
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      className="bg-gray-200"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    New Password
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      className="bg-gray-200"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Confirm New Password
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      className="bg-gray-200"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
+          <Button className="mt-2" type="submit" disabled={isLoading}>
+            {isLoading && (
+              <Loader
+                className="mr-2 h-4 w-4 animate-spin"
+                aria-hidden="true"
+              />
+            )}
+            Change Password
+          </Button>
         </div>
       </form>
     </Form>
