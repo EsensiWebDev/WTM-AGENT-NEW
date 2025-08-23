@@ -2,88 +2,60 @@
 
 import { ContactDetail } from "@/app/(protected)/cart/types";
 import { Button } from "@/components/ui/button";
-import { User } from "@/types/user";
 import { Plus } from "lucide-react";
 import React from "react";
 import { SelectUserDialog } from "./dialog/select-user-dialog";
+import { useGuests } from "./guest-context";
 import { ContactDetailsTable } from "./table/contact-details-table";
 
 interface ContactDetailsSectionProps {
-  initialGuests?: ContactDetail[];
+  // No props needed anymore
 }
 
-// Mock users data - in a real app, this would come from an API
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1234567890",
-    avatar: "/avatars/john.jpg",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    phone: "+1234567891",
-    avatar: "/avatars/jane.jpg",
-  },
-  {
-    id: "3",
-    name: "Mike Johnson",
-    email: "mike.johnson@example.com",
-    phone: "+1234567892",
-  },
-  {
-    id: "4",
-    name: "Sarah Wilson",
-    email: "sarah.wilson@example.com",
-    phone: "+1234567893",
-  },
-  {
-    id: "5",
-    name: "David Brown",
-    email: "david.brown@example.com",
-    phone: "+1234567894",
-  },
-];
-
-export function ContactDetailsSection({
-  initialGuests = [],
-}: ContactDetailsSectionProps) {
-  // const [guests, setGuests] = React.useState<ContactDetail[]>(initialGuests);
+export function ContactDetailsSection({}: ContactDetailsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const { guestNames, addGuest, removeGuest } = useGuests();
 
   const handleAddGuest = () => {
     setIsDialogOpen(true);
   };
+
+  const handleGuestAdded = (guestName: string) => {
+    addGuest(guestName);
+  };
+
+  // Convert guestNames to ContactDetail format for the table
+  const contactDetails: ContactDetail[] = guestNames.map((name, index) => ({
+    id: `guest-${index}`,
+    no: index + 1,
+    name: name,
+  }));
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Contact Details</h2>
         <Button onClick={handleAddGuest} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Add Guest
         </Button>
       </div>
 
-      {initialGuests.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
+      {contactDetails.length === 0 ? (
+        <div className="text-muted-foreground py-8 text-center">
           <p>No guests added yet.</p>
           <p className="text-sm">
             Click &quot;Add Guest&quot; to start adding contact details.
           </p>
         </div>
       ) : (
-        <ContactDetailsTable data={initialGuests} />
+        <ContactDetailsTable data={contactDetails} />
       )}
 
       <SelectUserDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        users={mockUsers}
-        selectedUsers={[]}
+        onAddGuest={handleGuestAdded}
       />
     </div>
   );

@@ -16,6 +16,7 @@ import { Clock, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import React, { useTransition } from "react";
 import { toast } from "sonner";
+import { useGuests } from "./guest-context";
 
 interface BookingDetailsSectionProps {
   bookingDetailsList: BookingDetail[];
@@ -50,6 +51,7 @@ interface HotelRoomCardProps {
 
 const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
   const [isPending, startTransition] = useTransition();
+  const { guestNames } = useGuests();
 
   const onRemove = async () => {
     startTransition(async () => {
@@ -212,9 +214,17 @@ const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
                 <SelectValue placeholder="Select Guest" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="guest-1">John Doe</SelectItem>
-                <SelectItem value="guest-2">Jane Smith</SelectItem>
-                <SelectItem value="guest-3">Mike Johnson</SelectItem>
+                {guestNames.length > 0 ? (
+                  guestNames.map((guestName, index) => (
+                    <SelectItem key={index} value={`guest-${index}`}>
+                      {guestName}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-guests" disabled>
+                    No guests added yet
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

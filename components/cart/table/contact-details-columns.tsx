@@ -6,19 +6,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DataTableRowAction } from "@/types/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Trash2 } from "lucide-react";
-import React from "react";
 
 interface GetContactDetailsTableColumnsProps {
-  setRowAction: React.Dispatch<
-    React.SetStateAction<DataTableRowAction<ContactDetail> | null>
-  >;
+  onDeleteGuest: (contactDetail: ContactDetail) => void;
 }
 
 export function getContactDetailsTableColumns({
-  setRowAction,
+  onDeleteGuest,
 }: GetContactDetailsTableColumnsProps): ColumnDef<ContactDetail>[] {
   return [
     {
@@ -51,14 +47,7 @@ export function getContactDetailsTableColumns({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                setRowAction({
-                  variant: "delete",
-                  row,
-                })
-              }
-            >
+            <DropdownMenuItem onClick={() => onDeleteGuest(row.original)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>

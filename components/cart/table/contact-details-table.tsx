@@ -2,11 +2,14 @@
 
 import { ContactDetail } from "@/app/(protected)/cart/types";
 import { DataTable } from "@/components/data-table/data-table";
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-import { useDataTable } from "@/hooks/use-data-table";
-import type { DataTableRowAction } from "@/types/data-table";
-import React, { useTransition } from "react";
-import { DeleteContactDetailDialog } from "../dialog/delete-contact-detail-dialog";
+import {
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import React from "react";
+import { toast } from "sonner";
+import { useGuests } from "../guest-context";
 import { getContactDetailsTableColumns } from "./contact-details-columns";
 
 interface ContactDetailsTableProps {
@@ -14,45 +17,29 @@ interface ContactDetailsTableProps {
 }
 
 export function ContactDetailsTable({ data }: ContactDetailsTableProps) {
-  const [isPending, startTransition] = useTransition();
-  const [rowAction, setRowAction] =
-    React.useState<DataTableRowAction<ContactDetail> | null>(null);
+  const { removeGuest } = useGuests();
+
+  const handleDeleteGuest = (contactDetail: ContactDetail) => {
+    // Extract index from the ID (format: "guest-{index}")
+    const index = parseInt(contactDetail.id.replace("guest-", ""));
+    removeGuest(index);
+    toast.success(`Guest "${contactDetail.name}" removed successfully`);
+  };
 
   const columns = React.useMemo(
     () =>
       getContactDetailsTableColumns({
-        setRowAction,
+        onDeleteGuest: handleDeleteGuest,
       }),
-    []
+    [],
   );
 
-  const { table } = useDataTable({
-    data,
+  const table = useReactTable({
     columns,
-    pageCount: 1, // Since this is a simple table without pagination
-    getRowId: (originalRow) => originalRow.id,
-    shallow: false,
-    clearOnDefault: true,
-    startTransition,
-    initialState: {
-      columnPinning: { right: ["actions"] },
-    },
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
-  return (
-    <>
-      <div className="relative">
-        <DataTable table={table} isPending={isPending}>
-          <DataTableToolbar table={table} isPending={isPending} />
-        </DataTable>
-      </div>
-      <DeleteContactDetailDialog
-        open={rowAction?.variant === "delete"}
-        onOpenChange={() => setRowAction(null)}
-        contactDetail={rowAction?.row.original ?? null}
-        showTrigger={false}
-        onSuccess={() => rowAction?.row.toggleSelected(false)}
-      />
-    </>
-  );
+  return <DataTable table={table} />;
 }
