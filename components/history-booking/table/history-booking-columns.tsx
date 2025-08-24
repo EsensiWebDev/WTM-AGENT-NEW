@@ -21,6 +21,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Ellipsis } from "lucide-react";
 import React from "react";
 
+// Helper function to get invoice count for a booking
+function getInvoiceCount(booking: HistoryBooking): number {
+  // Generate invoice count based on booking ID to ensure consistency
+  // This matches the logic in the invoice dialog
+  const hash = booking.bookingId.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return Math.abs(hash % 3) + 1; // 1-3 invoices
+}
+
 interface GetHistoryBookingTableColumnsProps {
   setRowAction: React.Dispatch<
     React.SetStateAction<DataTableRowAction<HistoryBooking> | null>
@@ -139,6 +150,8 @@ export function getHistoryBookingTableColumns({
     {
       id: "actions",
       cell: function Cell({ row }) {
+        const invoiceCount = getInvoiceCount(row.original);
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -154,7 +167,13 @@ export function getHistoryBookingTableColumns({
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: "invoice" })}
               >
-                <IconFileDescription className="mr-2 h-4 w-4" /> View Invoice
+                <IconFileDescription className="mr-2 h-4 w-4" />
+                View Invoice
+                {invoiceCount > 1 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {invoiceCount}
+                  </Badge>
+                )}
               </DropdownMenuItem>
               {row.original.paymentStatus === "paid" && (
                 <DropdownMenuItem

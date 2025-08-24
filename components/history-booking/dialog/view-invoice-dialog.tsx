@@ -16,12 +16,14 @@ import { InvoiceGenerator } from "@/lib/invoice-generator";
 import { PDFService } from "@/lib/pdf-service";
 import { ComprehensiveInvoiceData, InvoiceDialogState } from "@/types/invoice";
 import {
+  IconChevronLeft,
+  IconChevronRight,
   IconCloudUpload,
   IconFileDescription,
   IconFileText,
   IconRosetteDiscount,
 } from "@tabler/icons-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface ViewInvoiceDialogProps {
@@ -41,17 +43,81 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
     error: null,
     isLoading: false,
   });
+  const [currentInvoiceIndex, setCurrentInvoiceIndex] = useState(0);
 
-  // Generate invoice data when booking changes
-  const invoiceData = useMemo<ComprehensiveInvoiceData | null>(() => {
-    if (!booking) return null;
+  // Helper function to get consistent invoice count
+  const getInvoiceCount = useCallback((booking: HistoryBooking): number => {
+    // Generate invoice count based on booking ID to ensure consistency
+    const hash = booking.bookingId.split("").reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return Math.abs(hash % 3) + 1; // 1-3 invoices
+  }, []);
+
+  // Generate multiple invoice data when booking changes
+  const allInvoiceData = useMemo<ComprehensiveInvoiceData[]>(() => {
+    if (!booking) return [];
     try {
-      return InvoiceGenerator.generateFromBooking(booking);
+      // Use consistent invoice count logic
+      const invoiceCount = getInvoiceCount(booking);
+      const invoices: ComprehensiveInvoiceData[] = [];
+
+      for (let i = 0; i < invoiceCount; i++) {
+        const invoice = InvoiceGenerator.generateFromBooking(booking);
+        // Make each invoice slightly different by modifying the invoice number
+        invoice.invoiceNumber =
+          invoice.invoiceNumber + (i > 0 ? `-${i + 1}` : "");
+        invoices.push(invoice);
+      }
+
+      return invoices;
     } catch (error) {
       console.error("Failed to generate invoice data:", error);
-      return null;
+      return [];
     }
-  }, [booking]);
+  }, [booking, getInvoiceCount]);
+
+  // Get current invoice data
+  const invoiceData = useMemo<ComprehensiveInvoiceData | null>(() => {
+    return allInvoiceData[currentInvoiceIndex] || null;
+  }, [allInvoiceData, currentInvoiceIndex]);
+
+  // Navigation functions
+  const navigateToPrevious = useCallback(() => {
+    setCurrentInvoiceIndex((prev) =>
+      prev > 0 ? prev - 1 : allInvoiceData.length - 1,
+    );
+  }, [allInvoiceData.length]);
+
+  const navigateToNext = useCallback(() => {
+    setCurrentInvoiceIndex((prev) =>
+      prev < allInvoiceData.length - 1 ? prev + 1 : 0,
+    );
+  }, [allInvoiceData.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!open || allInvoiceData.length <= 1) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        navigateToPrevious();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        navigateToNext();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, allInvoiceData.length, navigateToPrevious, navigateToNext]);
+
+  // Reset navigation when dialog opens/closes or booking changes
+  useEffect(() => {
+    setCurrentInvoiceIndex(0);
+  }, [booking, open]);
 
   // Update state when invoice data changes
   useEffect(() => {
@@ -101,7 +167,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   if (!booking) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-7xl px-8">
           <DialogHeader>
             <DialogTitle>Invoice</DialogTitle>
           </DialogHeader>
@@ -116,7 +182,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   if (!invoiceData) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-7xl px-8">
           <DialogHeader>
             <DialogTitle>Invoice</DialogTitle>
           </DialogHeader>
@@ -131,11 +197,36 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] min-w-7xl overflow-y-auto bg-white">
+      <DialogContent className="max-h-[90vh] min-w-7xl overflow-y-auto bg-white px-8">
         <DialogHeader>
-          <DialogTitle className="sr-only flex items-center gap-2">
-            <IconFileText className="h-5 w-5" />
-            Invoice #{invoiceData.invoiceNumber}
+          <DialogTitle className="flex items-center justify-between">
+            <div className="sr-only flex items-center gap-2">
+              <IconFileText className="h-5 w-5" />
+              Invoice #{invoiceData.invoiceNumber}
+            </div>
+
+            {/* Navigation arrows for multiple invoices */}
+            {allInvoiceData.length > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={navigateToPrevious}
+                  className="h-8 w-8 p-0"
+                >
+                  <IconChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-muted-foreground text-sm font-normal">
+                  {currentInvoiceIndex + 1} of {allInvoiceData.length}
+                </span>
+                <Button
+                  size="sm"
+                  onClick={navigateToNext}
+                  className="h-8 w-8 p-0"
+                >
+                  <IconChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </DialogTitle>
         </DialogHeader>
 
