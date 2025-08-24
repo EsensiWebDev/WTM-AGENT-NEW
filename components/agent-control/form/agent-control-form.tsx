@@ -25,8 +25,6 @@ export function AgentControlForm<T extends FieldValues>({
   onSubmit,
   children,
 }: AgentControlFormProps<T>) {
-  console.log({ form });
-
   return (
     <Form {...form}>
       <form

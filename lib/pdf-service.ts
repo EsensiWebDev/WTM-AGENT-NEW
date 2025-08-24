@@ -1,6 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import { ComprehensiveInvoiceData, InvoiceErrorType } from "@/types/invoice";
 import { InvoicePDFDocument } from "@/components/history-booking/dialog/invoice-pdf-document";
+import React from "react";
 
 export class PDFService {
   /**
@@ -8,11 +9,11 @@ export class PDFService {
    */
   static async generateInvoicePDF(invoiceData: ComprehensiveInvoiceData): Promise<Blob> {
     try {
-      // Create the PDF document component
-      const document = InvoicePDFDocument({ invoice: invoiceData });
+      // Create the PDF document component using React.createElement
+      const documentElement = React.createElement(InvoicePDFDocument, { invoice: invoiceData });
       
       // Generate PDF blob
-      const blob = await pdf(document).toBlob();
+      const blob = await pdf(documentElement as any).toBlob();
       
       if (!blob) {
         throw new Error("Failed to generate PDF blob");
@@ -165,10 +166,12 @@ export class PDFService {
     try {
       // Check for required browser APIs
       return !!(
+        typeof window !== "undefined" &&
         window.URL && 
-        window.URL.createObjectURL && 
-        document.createElement && 
-        window.FileReader
+        typeof window.URL.createObjectURL === "function" && 
+        typeof document !== "undefined" &&
+        typeof document.createElement === "function" &&
+        typeof window.FileReader === "function"
       );
     } catch {
       return false;
@@ -184,9 +187,9 @@ export class PDFService {
     const lineItemSize = invoiceData.lineItems.length * 1000; // 1KB per line item
     const amenitySize = invoiceData.amenities.length * 200; // 200B per amenity
     const textContentSize = (
-      invoiceData.notes?.length || 0 +
-      invoiceData.termsAndConditions?.length || 0 +
-      invoiceData.roomDescription?.length || 0
+      (invoiceData.notes?.length || 0) +
+      (invoiceData.termsAndConditions?.length || 0) +
+      (invoiceData.roomDescription?.length || 0)
     ) * 10; // rough text size estimation
 
     return baseSize + lineItemSize + amenitySize + textContentSize;
