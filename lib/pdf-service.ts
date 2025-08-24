@@ -1,24 +1,28 @@
-import { pdf } from "@react-pdf/renderer";
-import { ComprehensiveInvoiceData, InvoiceErrorType } from "@/types/invoice";
 import { InvoicePDFDocument } from "@/components/history-booking/dialog/invoice-pdf-document";
+import { ComprehensiveInvoiceData, InvoiceErrorType } from "@/types/invoice";
+import { pdf } from "@react-pdf/renderer";
 import React from "react";
 
 export class PDFService {
   /**
    * Generate a PDF blob from invoice data
    */
-  static async generateInvoicePDF(invoiceData: ComprehensiveInvoiceData): Promise<Blob> {
+  static async generateInvoicePDF(
+    invoiceData: ComprehensiveInvoiceData,
+  ): Promise<Blob> {
     try {
       // Create the PDF document component using React.createElement
-      const documentElement = React.createElement(InvoicePDFDocument, { invoice: invoiceData });
-      
+      const documentElement = React.createElement(InvoicePDFDocument, {
+        invoice: invoiceData,
+      });
+
       // Generate PDF blob
       const blob = await pdf(documentElement as any).toBlob();
-      
+
       if (!blob) {
         throw new Error("Failed to generate PDF blob");
       }
-      
+
       return blob;
     } catch (error) {
       console.error("PDF generation error:", error);
@@ -33,18 +37,18 @@ export class PDFService {
     try {
       // Create a temporary URL for the blob
       const url = URL.createObjectURL(blob);
-      
+
       // Create a temporary anchor element for download
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
       link.style.display = "none";
-      
+
       // Append to body, click, and cleanup
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up the object URL
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -56,15 +60,20 @@ export class PDFService {
   /**
    * Generate a standardized filename for invoice PDFs
    */
-  static generateInvoiceFilename(invoiceData: ComprehensiveInvoiceData): string {
-    const sanitizedInvoiceNumber = invoiceData.invoiceNumber.replace(/[^a-zA-Z0-9-_]/g, "_");
+  static generateInvoiceFilename(
+    invoiceData: ComprehensiveInvoiceData,
+  ): string {
+    const sanitizedInvoiceNumber = invoiceData.invoiceNumber.replace(
+      /[^a-zA-Z0-9-_]/g,
+      "_",
+    );
     const sanitizedGuestName = invoiceData.guestName
       .replace(/[^a-zA-Z0-9\s]/g, "")
       .replace(/\s+/g, "_")
       .toLowerCase();
-    
+
     const date = new Date().toISOString().split("T")[0];
-    
+
     return `invoice_${sanitizedInvoiceNumber}_${sanitizedGuestName}_${date}.pdf`;
   }
 
@@ -73,21 +82,21 @@ export class PDFService {
    */
   static async generateAndDownloadInvoice(
     invoiceData: ComprehensiveInvoiceData,
-    onProgress?: (step: string) => void
+    onProgress?: (step: string) => void,
   ): Promise<void> {
     try {
       // Step 1: Generate PDF
       onProgress?.("Generating PDF document...");
       const pdfBlob = await this.generateInvoicePDF(invoiceData);
-      
+
       // Step 2: Prepare filename
       onProgress?.("Preparing download...");
       const filename = this.generateInvoiceFilename(invoiceData);
-      
+
       // Step 3: Download
       onProgress?.("Starting download...");
       this.downloadPDF(pdfBlob, filename);
-      
+
       onProgress?.("Download completed");
     } catch (error) {
       console.error("Invoice PDF generation and download error:", error);
@@ -98,9 +107,9 @@ export class PDFService {
   /**
    * Validate invoice data before PDF generation
    */
-  static validateInvoiceData(invoiceData: ComprehensiveInvoiceData): { 
-    isValid: boolean; 
-    errors: string[] 
+  static validateInvoiceData(invoiceData: ComprehensiveInvoiceData): {
+    isValid: boolean;
+    errors: string[];
   } {
     const errors: string[] = [];
 
@@ -110,11 +119,13 @@ export class PDFService {
     if (!invoiceData.invoiceNumber) errors.push("Invoice number is required");
     if (!invoiceData.hotelName) errors.push("Hotel name is required");
     if (!invoiceData.company?.name) errors.push("Company name is required");
-    
+
     // Financial data validation
-    if (invoiceData.totalAmount <= 0) errors.push("Total amount must be greater than 0");
-    if (invoiceData.basePrice <= 0) errors.push("Base price must be greater than 0");
-    
+    if (invoiceData.totalAmount <= 0)
+      errors.push("Total amount must be greater than 0");
+    if (invoiceData.basePrice <= 0)
+      errors.push("Base price must be greater than 0");
+
     // Date validation
     try {
       new Date(invoiceData.checkInDate);
@@ -138,7 +149,9 @@ export class PDFService {
   /**
    * Get PDF blob as data URL for preview
    */
-  static async generateInvoicePDFDataURL(invoiceData: ComprehensiveInvoiceData): Promise<string> {
+  static async generateInvoicePDFDataURL(
+    invoiceData: ComprehensiveInvoiceData,
+  ): Promise<string> {
     try {
       const blob = await this.generateInvoicePDF(invoiceData);
       return new Promise((resolve, reject) => {
@@ -167,8 +180,8 @@ export class PDFService {
       // Check for required browser APIs
       return !!(
         typeof window !== "undefined" &&
-        window.URL && 
-        typeof window.URL.createObjectURL === "function" && 
+        window.URL &&
+        typeof window.URL.createObjectURL === "function" &&
         typeof document !== "undefined" &&
         typeof document.createElement === "function" &&
         typeof window.FileReader === "function"
@@ -186,11 +199,11 @@ export class PDFService {
     const baseSize = 50000; // 50KB base
     const lineItemSize = invoiceData.lineItems.length * 1000; // 1KB per line item
     const amenitySize = invoiceData.amenities.length * 200; // 200B per amenity
-    const textContentSize = (
-      (invoiceData.notes?.length || 0) +
-      (invoiceData.termsAndConditions?.length || 0) +
-      (invoiceData.roomDescription?.length || 0)
-    ) * 10; // rough text size estimation
+    const textContentSize =
+      ((invoiceData.notes?.length || 0) +
+        (invoiceData.termsAndConditions?.length || 0) +
+        (invoiceData.roomDescription?.length || 0)) *
+      10; // rough text size estimation
 
     return baseSize + lineItemSize + amenitySize + textContentSize;
   }
@@ -210,13 +223,13 @@ export const InvoicePDFUtils = {
     }).format(invoiceData.totalAmount),
     formattedCheckInDate: new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
-      month: "long", 
+      month: "long",
       year: "numeric",
     }).format(new Date(invoiceData.checkInDate)),
     formattedCheckOutDate: new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
       month: "long",
-      year: "numeric", 
+      year: "numeric",
     }).format(new Date(invoiceData.checkOutDate)),
   }),
 
