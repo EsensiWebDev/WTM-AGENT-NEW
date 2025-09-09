@@ -56,7 +56,7 @@ export function SelectUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="bg-white sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add Guest</DialogTitle>
           <DialogDescription>

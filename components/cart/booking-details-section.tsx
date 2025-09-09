@@ -17,6 +17,7 @@ import Image from "next/image";
 import React, { useTransition } from "react";
 import { toast } from "sonner";
 import { useGuests } from "./guest-context";
+import { IconMoon } from "@tabler/icons-react";
 
 interface BookingDetailsSectionProps {
   bookingDetailsList: BookingDetail[];
@@ -28,7 +29,7 @@ const BookingDetailsSection = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Booking Details</h2>
+        <h2 className="text-2xl font-bold">Booking Details</h2>
       </div>
       <div className="grid gap-6 sm:gap-8">
         {bookingDetailsList.map((bookingDetails) => (
@@ -125,7 +126,7 @@ const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
             <div className="hidden items-center md:flex">
               <div className="h-[1px] w-4 bg-gray-600"></div>
               <div className="flex items-center justify-center rounded-full border border-gray-300 px-2 py-1 text-xs dark:border-gray-600">
-                <Clock className="mr-1 h-3 w-3" />
+                <IconMoon className="mr-1 h-3 w-3" />
                 {Math.max(
                   1,
                   Math.ceil(

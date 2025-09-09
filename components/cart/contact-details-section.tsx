@@ -14,7 +14,7 @@ interface ContactDetailsSectionProps {
 
 export function ContactDetailsSection({}: ContactDetailsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const { guestNames, addGuest, removeGuest } = useGuests();
+  const { guestNames, addGuest } = useGuests();
 
   const handleAddGuest = () => {
     setIsDialogOpen(true);
@@ -34,7 +34,7 @@ export function ContactDetailsSection({}: ContactDetailsSectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Contact Details</h2>
+        <h2 className="text-2xl font-bold">Contact Details</h2>
         <Button onClick={handleAddGuest} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Guest
