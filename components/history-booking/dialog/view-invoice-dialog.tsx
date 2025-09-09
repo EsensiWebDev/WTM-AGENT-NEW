@@ -37,6 +37,8 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   onOpenChange,
   booking,
 }) => {
+  console.log({ booking });
+
   const [state, setState] = useState<InvoiceDialogState>({
     isGeneratingPDF: false,
     invoiceData: null,
@@ -464,7 +466,6 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
             </Button>
             <Button
               variant="outline"
-              className="w-full bg-[#D0D6DB]"
               onClick={handleDownloadPDF}
               disabled={state.isGeneratingPDF}
             >

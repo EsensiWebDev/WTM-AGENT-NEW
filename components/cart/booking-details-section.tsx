@@ -1,6 +1,7 @@
 "use client";
 
 import { BookingDetail } from "@/app/(protected)/cart/types";
+import { HistoryBooking } from "@/app/(protected)/history-booking/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import {
@@ -14,10 +15,11 @@ import { delay } from "@/lib/utils";
 import { format } from "date-fns";
 import { Clock, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
-import React, { useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useGuests } from "./guest-context";
 import { IconMoon, IconRosetteDiscount } from "@tabler/icons-react";
+import ViewInvoiceDialog from "@/components/history-booking/dialog/view-invoice-dialog";
 
 interface BookingDetailsSectionProps {
   bookingDetailsList: BookingDetail[];
@@ -293,11 +295,37 @@ const BookingGrandTotalCard = ({
   bookingDetailsList: BookingDetail[];
 }) => {
   const [isPending, startTransition] = useTransition();
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [generatedBooking, setGeneratedBooking] =
+    useState<HistoryBooking | null>(null);
+
+  // Function to convert BookingDetail to HistoryBooking for invoice generation
+  const convertToHistoryBooking = (
+    bookingDetails: BookingDetail[],
+  ): HistoryBooking => {
+    return {
+      id: `booking-${Date.now()}`,
+      number: Math.floor(Math.random() * 1000) + 1,
+      guestName: "John Doe", // This would come from guest context in real app
+      bookingId: `1`,
+      bookingStatus: "approved" as const,
+      paymentStatus: "unpaid" as const,
+      notes: `Booking for ${bookingDetails.map((b) => b.hotelName).join(", ")}`,
+    };
+  };
 
   const onCheckOut = async () => {
     startTransition(async () => {
       await delay(1000);
-      toast.success("Checkout Success");
+
+      // Generate dummy booking data for invoice
+      const historyBooking = convertToHistoryBooking(bookingDetailsList);
+      setGeneratedBooking(historyBooking);
+
+      toast.success("Checkout Success - Invoice Generated!");
+
+      // Show invoice dialog
+      setShowInvoiceDialog(true);
     });
   };
 
@@ -370,13 +398,20 @@ const BookingGrandTotalCard = ({
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Check Outing
+              Check Outing...
             </>
           ) : (
             "Check Out"
           )}
         </Button>
       </div>
+
+      {/* Invoice Dialog */}
+      <ViewInvoiceDialog
+        open={showInvoiceDialog}
+        onOpenChange={setShowInvoiceDialog}
+        booking={generatedBooking}
+      />
     </div>
   );
 };
