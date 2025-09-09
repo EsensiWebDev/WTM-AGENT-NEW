@@ -1,11 +1,12 @@
 "use client";
 
-import { Menu, ShoppingCart, X } from "lucide-react";
+import { Bell, Check, Menu, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Logo } from "../logo";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { NavUser } from "./nav-user";
 
 const menuItems = [
@@ -25,9 +26,53 @@ const user = {
   avatar: "/avatars/shadcn.jpg",
 };
 
+// Mock notification data
+const notifications = [
+  {
+    id: 1,
+    title: "Booking Status Rejected",
+    message: "Booking was rejected due to payment issues",
+    isRead: false,
+    type: "error",
+  },
+  {
+    id: 2,
+    title: "Booking Status Rejected",
+    message: "Booking was rejected due to payment issues",
+    isRead: true,
+    type: "success",
+  },
+  {
+    id: 3,
+    title: "Booking Status Rejected",
+    message: "Booking was rejected due to payment issues",
+    isRead: true,
+    type: "success",
+  },
+  {
+    id: 4,
+    title: "Booking Status Rejected",
+    message: "Booking was rejected due to payment issues",
+    isRead: true,
+    type: "success",
+  },
+];
+
 export const Header = () => {
   const [menuState, setMenuState] = React.useState(false);
+  const [notificationList, setNotificationList] = React.useState(notifications);
   const cartItemCount = 3; // Static cart items count
+
+  const unreadCount = notificationList.filter((n) => !n.isRead).length;
+
+  const markAllAsRead = () => {
+    setNotificationList((prev) =>
+      prev.map((notification) => ({
+        ...notification,
+        isRead: true,
+      })),
+    );
+  };
 
   return (
     <header>
@@ -78,6 +123,79 @@ export const Header = () => {
               </button>
 
               <div className="flex items-center gap-3">
+                {/* Notification Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative size-10"
+                    >
+                      <Bell className="size-5" />
+                      {unreadCount > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs font-medium"
+                        >
+                          {unreadCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-0" align="end">
+                    <div className="border-b p-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Notification
+                      </h3>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notificationList.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="flex items-start gap-3 border-b p-4 last:border-b-0"
+                        >
+                          <div
+                            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+                              notification.type === "error"
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }`}
+                          >
+                            {notification.type === "error" ? (
+                              <X className="h-4 w-4 text-white" />
+                            ) : (
+                              <Check className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between">
+                              <h4 className="text-sm font-semibold text-gray-900">
+                                {notification.title}
+                              </h4>
+                              {!notification.isRead && (
+                                <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-red-500" />
+                              )}
+                            </div>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {notification.message}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {unreadCount > 0 && (
+                      <div className="border-t p-4">
+                        <Button
+                          onClick={markAllAsRead}
+                          className="w-full bg-gray-800 text-white hover:bg-gray-700"
+                        >
+                          Mark As Read
+                        </Button>
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+
                 <Link href={"/cart"}>
                   <Button
                     variant="ghost"
