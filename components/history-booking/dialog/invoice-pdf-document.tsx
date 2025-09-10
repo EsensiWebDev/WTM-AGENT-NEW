@@ -1,5 +1,6 @@
-import { ComprehensiveInvoiceData, InvoiceLineItem } from "@/types/invoice";
+import { ComprehensiveInvoiceData } from "@/types/invoice";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { IconRosetteDiscount } from "@tabler/icons-react";
 import React from "react";
 
 // Define styles for the PDF document
@@ -297,141 +298,6 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-// Status Badge Component
-const StatusBadge: React.FC<{
-  status: string;
-  type: "booking" | "payment";
-}> = ({ status, type }) => {
-  const getStatusStyle = () => {
-    if (type === "booking") {
-      switch (status) {
-        case "approved":
-          return styles.statusApproved;
-        case "waiting":
-          return styles.statusWaiting;
-        case "rejected":
-          return styles.statusRejected;
-        default:
-          return styles.statusRejected;
-      }
-    } else {
-      return status === "paid" ? styles.statusPaid : styles.statusUnpaid;
-    }
-  };
-
-  const getStatusText = () => {
-    if (type === "booking") {
-      switch (status) {
-        case "approved":
-          return "Approved";
-        case "waiting":
-          return "Waiting Approval";
-        case "rejected":
-          return "Rejected";
-        default:
-          return "Unknown";
-      }
-    } else {
-      return status === "paid" ? "Paid" : "Unpaid";
-    }
-  };
-
-  return (
-    <View style={[styles.statusBadge, getStatusStyle()]}>
-      <Text style={styles.statusText}>{getStatusText()}</Text>
-    </View>
-  );
-};
-
-// Line Items Table Component
-const LineItemsTable: React.FC<{ lineItems: InvoiceLineItem[] }> = ({
-  lineItems,
-}) => (
-  <View style={styles.table}>
-    {/* Table Header */}
-    <View style={styles.tableRow}>
-      <View style={styles.tableColHeader}>
-        <Text style={styles.tableCellHeader}>Description</Text>
-      </View>
-      <View style={styles.tableColHeader}>
-        <Text style={styles.tableCellHeader}>Quantity</Text>
-      </View>
-      <View style={styles.tableColHeader}>
-        <Text style={styles.tableCellHeader}>Unit Price</Text>
-      </View>
-      <View style={styles.tableColHeader}>
-        <Text style={styles.tableCellHeader}>Total</Text>
-      </View>
-    </View>
-
-    {/* Table Rows */}
-    {lineItems.map((item, index) => (
-      <View style={styles.tableRow} key={index}>
-        <View style={styles.tableCol}>
-          <Text style={styles.tableCell}>{item.description}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.tableCell}>{item.quantity}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.tableCell}>{formatCurrency(item.unitPrice)}</Text>
-        </View>
-        <View style={styles.tableCol}>
-          <Text style={styles.tableCell}>{formatCurrency(item.total)}</Text>
-        </View>
-      </View>
-    ))}
-  </View>
-);
-
-// Financial Summary Component
-const FinancialSummary: React.FC<{ invoice: ComprehensiveInvoiceData }> = ({
-  invoice,
-}) => (
-  <View>
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>Subtotal:</Text>
-      <Text style={styles.summaryValue}>
-        {formatCurrency(invoice.subtotal, invoice.currency)}
-      </Text>
-    </View>
-
-    {invoice.discount > 0 && (
-      <View style={styles.summaryRow}>
-        <Text style={styles.summaryLabel}>
-          Discount ({(invoice.discountRate * 100).toFixed(0)}%):
-        </Text>
-        <Text style={styles.summaryValue}>
-          -{formatCurrency(invoice.discount, invoice.currency)}
-        </Text>
-      </View>
-    )}
-
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>
-        Tax ({(invoice.taxRate * 100).toFixed(0)}%):
-      </Text>
-      <Text style={styles.summaryValue}>
-        {formatCurrency(invoice.taxes, invoice.currency)}
-      </Text>
-    </View>
-
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>Service Fee:</Text>
-      <Text style={styles.summaryValue}>
-        {formatCurrency(invoice.serviceFee, invoice.currency)}
-      </Text>
-    </View>
-
-    <View style={styles.totalRow}>
-      <Text style={styles.totalLabel}>TOTAL AMOUNT:</Text>
-      <Text style={styles.totalValue}>
-        {formatCurrency(invoice.totalAmount, invoice.currency)}
-      </Text>
-    </View>
-  </View>
-);
-
 // Main PDF Document Component
 export const InvoicePDFDocument: React.FC<{
   invoice: ComprehensiveInvoiceData;
@@ -443,68 +309,94 @@ export const InvoicePDFDocument: React.FC<{
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
-          marginBottom: 40,
+          paddingBottom: 30,
+          marginBottom: 30,
+          borderBottomWidth: 1,
+          borderBottomColor: "#e5e7eb",
         }}
       >
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}>
-            PT. World Travel Marketing Bali
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              marginBottom: 5,
+              color: "#111827",
+            }}
+          >
+            PT. World Travel Marketing Bali test
           </Text>
-          <Text style={{ fontSize: 10, color: "#666", lineHeight: 1.4 }}>
+          <Text style={{ fontSize: 10, color: "#6b7280", lineHeight: 1.4 }}>
             Ikat Plaza Building - Jl. Bypass Ngurah Rai No. 505{"\n"}
             Pemogan - Denpasar Selatan{"\n"}
             80221 Denpasar - Bali - Indonesia
           </Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 5 }}>
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: "bold",
+              marginBottom: 5,
+              color: "#111827",
+            }}
+          >
             Invoice
           </Text>
-          <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+          <Text style={{ fontSize: 24, fontWeight: "bold", color: "#374151" }}>
             #{invoice.invoiceNumber}
           </Text>
         </View>
       </View>
 
+      {/* Bill To Section */}
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "bold",
+          marginBottom: 12,
+          color: "#111827",
+        }}
+      >
+        Bill To:
+      </Text>
+
       {/* Billing and Invoice Details */}
-      <View style={{ flexDirection: "row", marginBottom: 30 }}>
+      <View style={{ flexDirection: "row", marginBottom: 40, gap: 32 }}>
         {/* Bill To */}
-        <View style={{ flex: 1, marginRight: 20 }}>
-          <Text style={{ fontSize: 12, fontWeight: "bold", marginBottom: 10 }}>
-            Bill To:
-          </Text>
-          <Text style={{ fontSize: 11, marginBottom: 2 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 12, marginBottom: 2, fontWeight: "500" }}>
             {invoice.customer.companyName || "Company Name"}
           </Text>
-          <Text style={{ fontSize: 11, marginBottom: 2 }}>
+          <Text style={{ fontSize: 12, marginBottom: 2 }}>
             {invoice.customer.agentName || "Agent Name"}
           </Text>
-          <Text style={{ fontSize: 11 }}>
+          <Text style={{ fontSize: 12 }}>
             {invoice.customer.email || "email@client.com"}
           </Text>
         </View>
 
         {/* Booking Details */}
-        <View style={{ flex: 1, marginRight: 20 }}>
+        <View style={{ flex: 1 }}>
           <View style={{ marginBottom: 8 }}>
             <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                marginBottom: 3,
+                marginBottom: 8,
               }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>Villa</Text>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>Villa</Text>
               <Text style={{ fontSize: 10 }}>{invoice.hotelName}</Text>
             </View>
             <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                marginBottom: 3,
+                marginBottom: 8,
               }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>Guest Name</Text>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>Guest Name</Text>
               <Text style={{ fontSize: 10 }}>
                 {formatDate(invoice.checkInDate)}
               </Text>
@@ -512,7 +404,7 @@ export const InvoicePDFDocument: React.FC<{
             <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>Period</Text>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>Period</Text>
               <Text style={{ fontSize: 10 }}>
                 {formatDate(invoice.checkOutDate)}
               </Text>
@@ -527,10 +419,12 @@ export const InvoicePDFDocument: React.FC<{
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                marginBottom: 3,
+                marginBottom: 8,
               }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>Invoice Date</Text>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>
+                Invoice Date
+              </Text>
               <Text style={{ fontSize: 10 }}>
                 {formatDate(invoice.invoiceDate)}
               </Text>
@@ -539,10 +433,10 @@ export const InvoicePDFDocument: React.FC<{
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                marginBottom: 3,
+                marginBottom: 8,
               }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>
                 Confirmation Number
               </Text>
               <Text style={{ fontSize: 10 }}>{invoice.bookingId}</Text>
@@ -550,7 +444,7 @@ export const InvoicePDFDocument: React.FC<{
             <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
-              <Text style={{ fontSize: 10, color: "#666" }}>COD</Text>
+              <Text style={{ fontSize: 10, color: "#6b7280" }}>COD</Text>
               <Text style={{ fontSize: 10 }}>
                 {formatDate(invoice.checkOutDate)}
               </Text>
@@ -560,55 +454,169 @@ export const InvoicePDFDocument: React.FC<{
       </View>
 
       {/* Items Table */}
-      <View style={styles.table}>
+      <View style={[styles.table, { marginTop: 20 }]}>
         {/* Table Header */}
         <View style={styles.tableRow}>
-          <View style={[styles.tableColHeader, { width: "8%" }]}>
-            <Text style={styles.tableCellHeader}>No.</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "8%", backgroundColor: "#f9fafb" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold" },
+              ]}
+            >
+              No.
+            </Text>
           </View>
-          <View style={[styles.tableColHeader, { width: "40%" }]}>
-            <Text style={styles.tableCellHeader}>Description</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "40%", backgroundColor: "#f9fafb" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold" },
+              ]}
+            >
+              Description
+            </Text>
           </View>
-          <View style={[styles.tableColHeader, { width: "12%" }]}>
-            <Text style={styles.tableCellHeader}>Qty</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "12%", backgroundColor: "#f9fafb", textAlign: "center" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold", textAlign: "center" },
+              ]}
+            >
+              Qty
+            </Text>
           </View>
-          <View style={[styles.tableColHeader, { width: "12%" }]}>
-            <Text style={styles.tableCellHeader}>Unit</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "12%", backgroundColor: "#f9fafb", textAlign: "center" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold", textAlign: "center" },
+              ]}
+            >
+              Unit
+            </Text>
           </View>
-          <View style={[styles.tableColHeader, { width: "15%" }]}>
-            <Text style={styles.tableCellHeader}>Unit Price</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "15%", backgroundColor: "#f9fafb", textAlign: "right" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold", textAlign: "right" },
+              ]}
+            >
+              Unit Price
+            </Text>
           </View>
-          <View style={[styles.tableColHeader, { width: "13%" }]}>
-            <Text style={styles.tableCellHeader}>Total Price</Text>
+          <View
+            style={[
+              styles.tableColHeader,
+              { width: "13%", backgroundColor: "#f9fafb", textAlign: "right" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCellHeader,
+                { fontSize: 11, fontWeight: "bold", textAlign: "right" },
+              ]}
+            >
+              Total Price
+            </Text>
           </View>
         </View>
 
         {/* Table Rows */}
         <View style={styles.tableRow}>
-          <View style={[styles.tableCol, { width: "8%" }]}>
-            <Text style={styles.tableCell}>1.</Text>
+          <View
+            style={[styles.tableCol, { width: "8%", backgroundColor: "white" }]}
+          >
+            <Text style={[styles.tableCell, { fontSize: 10 }]}>1.</Text>
           </View>
-          <View style={[styles.tableCol, { width: "40%" }]}>
-            <Text style={styles.tableCell}>
+          <View
+            style={[
+              styles.tableCol,
+              { width: "40%", backgroundColor: "white" },
+            ]}
+          >
+            <Text style={[styles.tableCell, { fontSize: 10 }]}>
               Room Costs - {invoice.roomType}
             </Text>
           </View>
-          <View style={[styles.tableCol, { width: "12%" }]}>
-            <Text style={styles.tableCell}>{invoice.numberOfNights}</Text>
+          <View
+            style={[
+              styles.tableCol,
+              { width: "12%", backgroundColor: "white" },
+            ]}
+          >
+            <Text
+              style={[styles.tableCell, { fontSize: 10, textAlign: "center" }]}
+            >
+              {invoice.numberOfNights}
+            </Text>
           </View>
-          <View style={[styles.tableCol, { width: "12%" }]}>
-            <Text style={styles.tableCell}>Nights</Text>
+          <View
+            style={[
+              styles.tableCol,
+              { width: "12%", backgroundColor: "white" },
+            ]}
+          >
+            <Text
+              style={[styles.tableCell, { fontSize: 10, textAlign: "center" }]}
+            >
+              Nights
+            </Text>
           </View>
-          <View style={[styles.tableCol, { width: "15%" }]}>
-            <Text style={styles.tableCell}>
+          <View
+            style={[
+              styles.tableCol,
+              { width: "15%", backgroundColor: "white" },
+            ]}
+          >
+            <Text
+              style={[styles.tableCell, { fontSize: 10, textAlign: "right" }]}
+            >
               {formatCurrency(
                 invoice.subtotal / invoice.numberOfNights,
                 invoice.currency,
               )}
             </Text>
           </View>
-          <View style={[styles.tableCol, { width: "13%" }]}>
-            <Text style={styles.tableCell}>
+          <View
+            style={[
+              styles.tableCol,
+              { width: "13%", backgroundColor: "white" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCell,
+                { fontSize: 10, textAlign: "right", fontWeight: "500" },
+              ]}
+            >
               {formatCurrency(invoice.subtotal, invoice.currency)}
             </Text>
           </View>
@@ -616,25 +624,78 @@ export const InvoicePDFDocument: React.FC<{
 
         {invoice.serviceFee > 0 && (
           <View style={styles.tableRow}>
-            <View style={[styles.tableCol, { width: "8%" }]}>
-              <Text style={styles.tableCell}>2.</Text>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "8%", backgroundColor: "white" },
+              ]}
+            >
+              <Text style={[styles.tableCell, { fontSize: 10 }]}>2.</Text>
             </View>
-            <View style={[styles.tableCol, { width: "40%" }]}>
-              <Text style={styles.tableCell}>Surcharge - Service Fee</Text>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "40%", backgroundColor: "white" },
+              ]}
+            >
+              <Text style={[styles.tableCell, { fontSize: 10 }]}>
+                Surcharge - Service Fee
+              </Text>
             </View>
-            <View style={[styles.tableCol, { width: "12%" }]}>
-              <Text style={styles.tableCell}>1</Text>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "12%", backgroundColor: "white" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tableCell,
+                  { fontSize: 10, textAlign: "center" },
+                ]}
+              >
+                1
+              </Text>
             </View>
-            <View style={[styles.tableCol, { width: "12%" }]}>
-              <Text style={styles.tableCell}>Item</Text>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "12%", backgroundColor: "white" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tableCell,
+                  { fontSize: 10, textAlign: "center" },
+                ]}
+              >
+                Item
+              </Text>
             </View>
-            <View style={[styles.tableCol, { width: "15%" }]}>
-              <Text style={styles.tableCell}>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "15%", backgroundColor: "white" },
+              ]}
+            >
+              <Text
+                style={[styles.tableCell, { fontSize: 10, textAlign: "right" }]}
+              >
                 {formatCurrency(invoice.serviceFee, invoice.currency)}
               </Text>
             </View>
-            <View style={[styles.tableCol, { width: "13%" }]}>
-              <Text style={styles.tableCell}>
+            <View
+              style={[
+                styles.tableCol,
+                { width: "13%", backgroundColor: "white" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tableCell,
+                  { fontSize: 10, textAlign: "right", fontWeight: "500" },
+                ]}
+              >
                 {formatCurrency(invoice.serviceFee, invoice.currency)}
               </Text>
             </View>
@@ -642,78 +703,78 @@ export const InvoicePDFDocument: React.FC<{
         )}
       </View>
 
-      {/* Total Section */}
-      <View style={{ alignItems: "flex-end", marginTop: 20, marginBottom: 40 }}>
-        <View style={{ width: 250 }}>
+      {/* Total Section - Matching Dialog Layout */}
+      <View style={{ alignItems: "flex-end", marginTop: 30 }}>
+        <View style={{ width: 280 }}>
+          {/* First row: Total Room Price and Strikethrough price */}
           <View
             style={{
-              borderBottomWidth: 1,
-              borderBottomColor: "#ccc",
-              paddingBottom: 10,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 4,
             }}
           >
-            <View
+            <Text style={{ fontSize: 16, fontWeight: "500", color: "#111827" }}>
+              Total Room Price
+            </Text>
+            <Text
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
+                fontSize: 12,
+                color: "#6b7280",
+                textDecoration: "line-through",
               }}
             >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ fontSize: 14, fontWeight: "bold", marginBottom: 5 }}
-                >
-                  Total Room Price
-                </Text>
-                <Text style={{ fontSize: 10, color: "#666" }}>
-                  {invoice.numberOfGuests} room(s), {invoice.numberOfNights}{" "}
-                  night
-                </Text>
-              </View>
-              <View style={{ alignItems: "flex-end" }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginBottom: 3,
-                  }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: "#333",
-                      borderRadius: 12,
-                      paddingHorizontal: 8,
-                      paddingVertical: 3,
-                      marginRight: 8,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 8,
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      3D2NIGHT15
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: "#666",
-                      textDecoration: "line-through",
-                    }}
-                  >
-                    {formatCurrency(
-                      invoice.subtotal + invoice.serviceFee,
-                      invoice.currency,
-                    )}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                  {formatCurrency(invoice.totalAmount, invoice.currency)}
-                </Text>
-              </View>
+              {formatCurrency(
+                invoice.subtotal + invoice.serviceFee,
+                invoice.currency,
+              )}
+            </Text>
+          </View>
+
+          {/* Second row: Room/night info and Total price */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <Text style={{ fontSize: 10, color: "#6b7280" }}>
+              {invoice.numberOfGuests} room(s), {invoice.numberOfNights} night
+            </Text>
+            <Text
+              style={{ fontSize: 20, fontWeight: "bold", color: "#111827" }}
+            >
+              {formatCurrency(invoice.totalAmount, invoice.currency)}
+            </Text>
+          </View>
+
+          {/* Third row: Voucher code badge */}
+          <View style={{ alignItems: "flex-end" }}>
+            <View
+              style={{
+                backgroundColor: "#2A3D45",
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 4,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 9,
+                  color: "white",
+                  fontWeight: "500",
+                }}
+              >
+                Promo
+                <IconRosetteDiscount className="h-4 w-4" />
+                September Promo | {formatCurrency(500000, "IDR")} Off!
+              </Text>
             </View>
           </View>
         </View>
@@ -722,15 +783,19 @@ export const InvoicePDFDocument: React.FC<{
       {/* Footer Note */}
       <View
         style={{
+          marginTop: 40,
           marginBottom: 20,
           paddingTop: 15,
           paddingBottom: 10,
+          borderTopWidth: 0,
+          borderTopColor: "#e5e7eb",
           borderBottomWidth: 1,
           borderBottomColor: "#e5e7eb",
         }}
       >
-        <Text style={{ fontSize: 10, color: "#666" }}>
-          Payment and cancellation policy as per contract.
+        <Text style={{ fontSize: 10, color: "#6b7280", lineHeight: 1.4 }}>
+          Payment and cancellation policy as per contract.{"\n"}
+          *terms & condition applied
         </Text>
       </View>
 

@@ -10,7 +10,7 @@ import {
 export class InvoiceGenerator {
   // Company information (from the image)
   private static readonly COMPANY_INFO: InvoiceCompany = {
-    name: "PT. World Travel Marketing Bali",
+    name: "PT. World Travel Marketing Bali test",
     address:
       "Ikat Plaza Building - Jl. Bypass Ngurah Rai No. 505\nPemogan - Denpasar Selatan\n80221 Denpasar - Bali - Indonesia",
     phone: "0361 4756583",
@@ -303,7 +303,7 @@ export class InvoiceGenerator {
     return this.ROOM_TYPES[Math.floor(Math.random() * this.ROOM_TYPES.length)];
   }
 
-  private static generateHotelAddress(hotelName: string): string {
+  private static generateHotelAddress(_hotelName: string): string {
     const addresses = [
       "Jl. Thamrin No. 1, Jakarta Pusat, 10310",
       "Jl. Dr. Ide Anak Agung Gde Agung, Jakarta Selatan, 12950",
