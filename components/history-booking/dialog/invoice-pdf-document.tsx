@@ -1,6 +1,5 @@
 import { ComprehensiveInvoiceData } from "@/types/invoice";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { IconRosetteDiscount } from "@tabler/icons-react";
 import React from "react";
 
 // Define styles for the PDF document
@@ -771,8 +770,6 @@ export const InvoicePDFDocument: React.FC<{
                   fontWeight: "500",
                 }}
               >
-                Promo
-                <IconRosetteDiscount className="h-4 w-4" />
                 September Promo | {formatCurrency(500000, "IDR")} Off!
               </Text>
             </View>
