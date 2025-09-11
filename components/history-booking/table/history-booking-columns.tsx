@@ -53,16 +53,16 @@ export function getHistoryBookingTableColumns({
       size: 24,
     },
     {
-      id: "guestName",
-      accessorKey: "guestName",
+      id: "search",
+      accessorFn: (row) => `${row.guestName} ${row.bookingId}`,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Guest Name" />
       ),
       cell: ({ row }) => row.original.guestName,
       enableHiding: false,
       meta: {
-        label: "Guest Name",
-        placeholder: "Search guest name...",
+        label: "Search",
+        placeholder: "Search guest name or booking ID...",
         variant: "text",
       },
       enableColumnFilter: true,

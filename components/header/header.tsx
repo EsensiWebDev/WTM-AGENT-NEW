@@ -2,6 +2,7 @@
 
 import { Bell, Check, Menu, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { Logo } from "../logo";
 import { Badge } from "../ui/badge";
@@ -32,6 +33,7 @@ const notifications = [
     id: 1,
     title: "Booking Status Rejected",
     message: "Booking was rejected due to payment issues",
+    booking_id: "BK-001",
     isRead: false,
     type: "error",
   },
@@ -39,6 +41,7 @@ const notifications = [
     id: 2,
     title: "Booking Status Rejected",
     message: "Booking was rejected due to payment issues",
+    booking_id: "BK-001",
     isRead: true,
     type: "success",
   },
@@ -46,6 +49,7 @@ const notifications = [
     id: 3,
     title: "Booking Status Rejected",
     message: "Booking was rejected due to payment issues",
+    booking_id: "BK-001",
     isRead: true,
     type: "success",
   },
@@ -53,12 +57,14 @@ const notifications = [
     id: 4,
     title: "Booking Status Rejected",
     message: "Booking was rejected due to payment issues",
+    booking_id: "BK-001",
     isRead: true,
     type: "success",
   },
 ];
 
 export const Header = () => {
+  const router = useRouter();
   const [menuState, setMenuState] = React.useState(false);
   const [notificationList, setNotificationList] = React.useState(notifications);
   const cartItemCount = 3; // Static cart items count
@@ -72,6 +78,10 @@ export const Header = () => {
         isRead: true,
       })),
     );
+  };
+
+  const handleNotificationClick = (bookingId: string) => {
+    router.push(`/history-booking?search=${encodeURIComponent(bookingId)}`);
   };
 
   return (
@@ -168,7 +178,10 @@ export const Header = () => {
                       {notificationList.map((notification) => (
                         <div
                           key={notification.id}
-                          className="flex items-start gap-3 border-b p-4 last:border-b-0"
+                          className="flex cursor-pointer items-start gap-3 border-b p-4 transition-colors last:border-b-0 hover:bg-gray-50"
+                          onClick={() =>
+                            handleNotificationClick(notification.booking_id)
+                          }
                         >
                           <div
                             className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
