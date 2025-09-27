@@ -1,6 +1,6 @@
 import { HotelGallery } from "@/components/hotel-detail/gallery";
 import { HotelInfo } from "@/components/hotel-detail/info";
-import { RoomCard } from "@/components/hotel-detail/room-card";
+import RoomCard from "@/components/hotel-detail/room-card";
 import { Suspense } from "react";
 import { fetchHotelDetail } from "./fetch";
 

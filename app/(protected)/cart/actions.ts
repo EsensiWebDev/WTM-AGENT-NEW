@@ -1,11 +1,11 @@
 "use server";
 
-import { User } from "@/types/user";
-import { getContactDetails, saveContactDetails } from "./fetch";
 import type {
   AdditionalService,
   RoomOption,
 } from "@/app/(protected)/hotel-detail/types";
+import { User } from "@/types/user";
+import { getContactDetails, saveContactDetails } from "./fetch";
 
 export interface AddToCartData {
   hotelName: string;
@@ -14,6 +14,7 @@ export interface AddToCartData {
   quantity: number;
   selectedAdditionals: Record<string, boolean>;
   additionalServices: AdditionalService[];
+  promoCode?: string | null;
 }
 
 export async function addRoomToCart(data: AddToCartData) {
@@ -45,7 +46,23 @@ export async function addRoomToCart(data: AddToCartData) {
       (sum, service) => sum + service.price,
       0,
     );
-    const totalPrice = roomTotal + servicesTotal;
+
+    // Apply promo discount if available
+    let discount = 0;
+    if (data.promoCode) {
+      // In a real app, you would validate the promo code against a database
+      // For now, we'll simulate some common promo codes
+      const promoDiscounts: Record<string, number> = {
+        SAVE10: 10,
+        WEEKEND: 15,
+        EARLYBIRD: 5,
+      };
+
+      const discountPercentage = promoDiscounts[data.promoCode] || 0;
+      discount = (roomTotal * discountPercentage) / 100;
+    }
+
+    const totalPrice = roomTotal + servicesTotal - discount;
 
     // Simulate adding to cart (in a real app, this would save to database)
     console.log("Adding to cart:", {
@@ -54,16 +71,21 @@ export async function addRoomToCart(data: AddToCartData) {
       option: data.selectedOption.label,
       quantity: data.quantity,
       selectedServices: selectedServices.map((s) => s.label),
+      promoCode: data.promoCode,
+      discount,
       totalPrice,
     });
 
     // Simulate success response
+    const discountMessage =
+      discount > 0 ? ` (with ${data.promoCode} discount)` : "";
     return {
       success: true,
-      message: `${data.roomName} (${data.selectedOption.label}) has been added to cart`,
+      message: `${data.roomName} (${data.selectedOption.label}) has been added to cart${discountMessage}`,
       data: {
         roomTotal,
         servicesTotal,
+        discount,
         totalPrice,
         itemCount: data.quantity,
       },

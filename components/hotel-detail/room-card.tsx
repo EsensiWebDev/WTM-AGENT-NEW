@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  addRoomToCart,
+  type AddToCartData,
+} from "@/app/(protected)/cart/actions";
 import type {
   AdditionalService,
   RoomCardProps,
@@ -14,23 +18,27 @@ import {
 } from "@tabler/icons-react";
 import { ChevronRight, Minus, Plus } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Checkbox } from "../ui/checkbox";
 import RoomDetailsDialog from "./room-details-dialog";
-import {
-  addRoomToCart,
-  type AddToCartData,
-} from "@/app/(protected)/cart/actions";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export interface ExtendedRoomCardProps extends RoomCardProps {
   hotelName?: string;
 }
 
-export function RoomCard({
+// Add promo type definition
+interface Promo {
+  id: string;
+  code: string;
+  description: string;
+  discount: number; // percentage
+}
+
+export default function RoomCard({
   name,
   images,
   options,
@@ -44,8 +52,31 @@ export function RoomCard({
   const [selectedAdditionals, setSelectedAdditionals] = useState<
     Record<string, boolean>
   >({});
+  const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Sample promos - in a real app, these would come from props or API
+  const availablePromos: Promo[] = [
+    {
+      id: "promo1",
+      code: "SAVE10",
+      description: "10% off on room",
+      discount: 10,
+    },
+    {
+      id: "promo2",
+      code: "WEEKEND",
+      description: "15% off for weekend stay",
+      discount: 15,
+    },
+    {
+      id: "promo3",
+      code: "EARLYBIRD",
+      description: "5% off for early booking",
+      discount: 5,
+    },
+  ];
 
   // Generate unique radio group name for this room type
   const radioGroupName = `room-option-${name.toLowerCase().replace(/\s+/g, "-")}`;
@@ -58,8 +89,15 @@ export function RoomCard({
     }));
   };
 
+  const handlePromoChange = (promoId: string | null) => {
+    setSelectedPromo(promoId);
+  };
+
   const handleAddToCart = () => {
     startTransition(async () => {
+      // Find the selected promo object
+      const promo = availablePromos.find((p) => p.id === selectedPromo) || null;
+
       const cartData: AddToCartData = {
         hotelName,
         roomName: name,
@@ -67,6 +105,7 @@ export function RoomCard({
         quantity: roomQuantity,
         selectedAdditionals,
         additionalServices: additionals || [],
+        promoCode: promo ? promo.code : null,
       };
 
       const result = await addRoomToCart(cartData);
@@ -91,7 +130,10 @@ export function RoomCard({
         <h2 className="mb-6 text-2xl font-semibold text-gray-900">{name}</h2>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-          <RoomImageGallery images={images} />
+          <RoomImageGallery
+            images={images}
+            onImageClick={() => setIsDialogOpen(true)}
+          />
 
           <div className="col-span-3 flex flex-col">
             <RoomOptions
@@ -99,6 +141,13 @@ export function RoomCard({
               selectedOption={selectedOption}
               onOptionChange={setSelectedOption}
               radioGroupName={radioGroupName}
+            />
+
+            {/* Promo Selection */}
+            <PromoSelection
+              promos={availablePromos}
+              selectedPromo={selectedPromo}
+              onPromoChange={handlePromoChange}
             />
 
             {/* Additional Services */}
@@ -172,10 +221,19 @@ export function RoomCard({
   );
 }
 
-function RoomImageGallery({ images }: { images: string[] }) {
+function RoomImageGallery({
+  images,
+  onImageClick,
+}: {
+  images: string[];
+  onImageClick: () => void;
+}) {
   return (
-    <div className="col-span-2 grid grid-cols-3 gap-2">
-      <div className="group relative col-span-3 aspect-[4/3] overflow-hidden rounded-lg">
+    <div className="col-span-2 flex flex-col gap-2">
+      <div
+        className="group relative col-span-3 aspect-[4/3] cursor-pointer overflow-hidden rounded-lg"
+        onClick={onImageClick}
+      >
         <Image
           alt="Room main image"
           src={images[0]}
@@ -184,20 +242,23 @@ function RoomImageGallery({ images }: { images: string[] }) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </div>
-      {images.slice(1, 4).map((image, index) => (
-        <div
-          key={index}
-          className="group relative col-span-1 aspect-square overflow-hidden rounded-lg"
-        >
-          <Image
-            alt={`Room image ${index + 2}`}
-            src={image}
-            className="absolute size-full object-cover transition-opacity group-hover:opacity-90"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        </div>
-      ))}
+      <div className="grid grid-cols-3 gap-2">
+        {images.slice(1, 4).map((image, index) => (
+          <div
+            key={index}
+            className="group relative col-span-1 aspect-square cursor-pointer overflow-hidden rounded-lg"
+            onClick={onImageClick}
+          >
+            <Image
+              alt={`Room image ${index + 2}`}
+              src={image}
+              className="absolute size-full object-cover transition-opacity group-hover:opacity-90"
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -334,6 +395,78 @@ function RoomFeatures({
             <span className="text-sm font-semibold text-gray-600">
               {feature.text}
             </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Add the new PromoSelection component here
+function PromoSelection({
+  promos,
+  selectedPromo,
+  onPromoChange,
+}: {
+  promos: Promo[];
+  selectedPromo: string | null;
+  onPromoChange: (promoId: string | null) => void;
+}) {
+  return (
+    <div className="mt-6">
+      <h4 className="mb-3 text-sm font-semibold text-gray-900">
+        Apply Promo Code
+      </h4>
+      <div className="space-y-2">
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={() => onPromoChange(null)}
+            className={`flex w-full items-center rounded-lg border p-3 text-left transition-colors ${
+              selectedPromo === null
+                ? "border-primary bg-primary/5"
+                : "border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300">
+              {selectedPromo === null && (
+                <div className="bg-primary h-3 w-3 rounded-full"></div>
+              )}
+            </div>
+            <span className="ml-3 text-sm font-medium text-gray-900">
+              No Promo
+            </span>
+          </button>
+        </div>
+
+        {promos.map((promo) => (
+          <div key={promo.id} className="flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={() => onPromoChange(promo.id)}
+              className={`flex flex-1 items-center justify-between rounded-lg border p-3 text-left transition-colors ${
+                selectedPromo === promo.id
+                  ? "border-primary bg-primary/5"
+                  : "border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              <div className="flex items-center">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300">
+                  {selectedPromo === promo.id && (
+                    <div className="bg-primary h-3 w-3 rounded-full"></div>
+                  )}
+                </div>
+                <div className="ml-3">
+                  <span className="text-sm font-medium text-gray-900">
+                    {promo.code}
+                  </span>
+                  <p className="text-xs text-gray-600">{promo.description}</p>
+                </div>
+              </div>
+              <span className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                {promo.discount}% off
+              </span>
+            </button>
           </div>
         ))}
       </div>
