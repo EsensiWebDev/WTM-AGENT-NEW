@@ -45,7 +45,6 @@ export interface Room {
 export interface RoomOption {
   includes?: string; // included amenities or services
   label: string; // option label (e.g., 'Deluxe', 'Suite')
-  originalPrice?: number; // price before discount
   price: number; // current price
 }
 

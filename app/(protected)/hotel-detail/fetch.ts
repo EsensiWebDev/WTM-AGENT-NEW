@@ -45,12 +45,10 @@ const mockHotel: HotelDetail = {
         {
           label: "Without Breakfast",
           price: 2800000,
-          originalPrice: 3100000,
         },
         {
           label: "With Breakfast",
           price: 2800000,
-          originalPrice: 3100000,
           includes: "for 2 pax",
         },
       ],
@@ -80,12 +78,10 @@ const mockHotel: HotelDetail = {
         {
           label: "Without Breakfast",
           price: 2700000,
-          originalPrice: 3000000,
         },
         {
           label: "With Breakfast",
           price: 2750000,
-          originalPrice: 3050000,
           includes: "for 2 pax",
         },
       ],
@@ -103,12 +99,10 @@ const mockHotel: HotelDetail = {
         {
           label: "Without Breakfast",
           price: 5000000,
-          originalPrice: 6000000,
         },
         {
           label: "With Breakfast",
           price: 5200000,
-          originalPrice: 6200000,
           includes: "for 4 pax",
         },
       ],

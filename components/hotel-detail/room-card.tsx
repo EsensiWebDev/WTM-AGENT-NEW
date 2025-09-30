@@ -441,6 +441,7 @@ export default function RoomCard({
               selectedOption={selectedOption}
               onOptionChange={setSelectedOption}
               radioGroupName={radioGroupName}
+              promo={availablePromos.find((p) => p.id === selectedPromo)}
             />
 
             {/* Promo Selection */}
@@ -591,12 +592,16 @@ function RoomOptions({
   selectedOption,
   onOptionChange,
   radioGroupName,
+  promo,
 }: {
   options: RoomOption[];
   selectedOption: number;
   onOptionChange: (index: number) => void;
   radioGroupName: string;
+  promo?: Promo;
 }) {
+  console.log({ promo });
+
   return (
     <div>
       <h3 className="mb-4 text-lg font-semibold text-gray-900">Room Options</h3>
@@ -632,13 +637,26 @@ function RoomOptions({
             </div>
 
             <div className="text-right">
-              {option.originalPrice && (
+              {option.price && (
                 <p className="text-sm text-gray-500 line-through">
-                  Rp {option.originalPrice.toLocaleString("id-ID")}
+                  {promo && (
+                    <span>Rp {option.price.toLocaleString("id-ID")}</span>
+                  )}
                 </p>
               )}
               <p className="text-lg font-semibold text-gray-900">
-                Rp {option.price.toLocaleString("id-ID")}
+                {promo && (
+                  <span>
+                    Rp{" "}
+                    {(
+                      ((100 - promo.discount) * option.price) /
+                      100
+                    ).toLocaleString("id-ID")}
+                  </span>
+                )}
+                {!promo && (
+                  <span>Rp {option.price.toLocaleString("id-ID")}</span>
+                )}
               </p>
             </div>
           </div>
