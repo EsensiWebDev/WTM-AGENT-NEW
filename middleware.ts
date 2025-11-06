@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/home"];
+const PUBLIC_PATHS = ["/login", "/register", "/home"];
 const AUTHENTICATED_REDIRECT_PATH = "/home";
 
 export default withAuth(
@@ -11,8 +11,6 @@ export default withAuth(
     const { pathname } = req.nextUrl;
 
     const isPublicPath = PUBLIC_PATHS.includes(pathname);
-
-    console.log({ isPublicPath, PUBLIC_PATHS, pathname });
 
     if (!isAuthenticated && !isPublicPath) {
       const callbackUrl = `${pathname}${req.nextUrl.search}`;
