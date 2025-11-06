@@ -14,24 +14,24 @@ export async function loginAction(input: LoginSchema) {
     user: null,
   };
 
-  // Check if password is correct
-  if (password === "abc123!@#") {
-    // Return success response
-    return {
-      success: true,
-      message: "Login successful",
-      user: {
-        id: "riza11",
-        email: email,
-        name: "admin dummy",
-      },
-    };
-  } else {
-    // Return error response
-    return {
-      success: false,
-      message: "Invalid email or password",
-      user: null,
-    };
-  }
+  // // Check if password is correct
+  // if (password === "abc123!@#") {
+  //   // Return success response
+  //   return {
+  //     success: true,
+  //     message: "Login successful",
+  //     user: {
+  //       id: "riza11",
+  //       email: email,
+  //       name: "admin dummy",
+  //     },
+  //   };
+  // } else {
+  //   // Return error response
+  //   return {
+  //     success: false,
+  //     message: "Invalid email or password",
+  //     user: null,
+  //   };
+  // }
 }
