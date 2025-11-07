@@ -6,7 +6,13 @@ export const registerSchema = z
     fullName: z.string().min(1, "Full name is required"),
     agentCompany: z.string().optional(),
     email: z.string().email("Please enter a valid email"),
-    phoneNumber: z.string().min(1, "Phone number is required"),
+    phoneNumber: z
+      .string()
+      .min(8, "Phone number must be at least 8 characters")
+      .regex(
+        /^\+\d+$/,
+        "Phone number must start with a country code (e.g., +62) followed by digits only",
+      ),
     username: z.string().min(1, "Username is required"),
     kakaoTalkId: z.string().min(1, "KakaoTalk ID is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
