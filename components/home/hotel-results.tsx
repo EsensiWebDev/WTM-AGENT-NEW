@@ -43,7 +43,10 @@ const HotelResults = ({ promise }: HotelResultsProps) => {
 };
 
 const SearchByName = () => {
-  const [search, setSearch] = useQueryState("search", parseAsString);
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault("").withOptions({ shallow: false }),
+  );
   const [searchInput, setSearchInput] = React.useState(search ?? "");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,6 +86,8 @@ const HotelList = ({ promise }: HotelListProps) => {
     pagination,
   } = hotelsData;
   const pageCount = pagination?.total_pages || 1;
+
+  console.log({ hotels });
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 
