@@ -560,9 +560,10 @@ function RoomOptions({
             </div>
 
             <div className="text-right">
-              {without_breakfast.price && (
+              {without_breakfast.price && promo && (
                 <p className="text-sm text-gray-500 line-through">
-                  {promo && (
+                  {promo.price_without_breakfast !==
+                    without_breakfast.price && (
                     <span>
                       Rp {without_breakfast.price.toLocaleString("id-ID")}
                     </span>
@@ -619,9 +620,9 @@ function RoomOptions({
             </div>
 
             <div className="text-right">
-              {with_breakfast.price && (
+              {with_breakfast.price && promo && (
                 <p className="text-sm text-gray-500 line-through">
-                  {promo && (
+                  {promo.price_with_breakfast !== with_breakfast.price && (
                     <span>
                       Rp {with_breakfast.price.toLocaleString("id-ID")}
                     </span>
@@ -630,7 +631,11 @@ function RoomOptions({
               )}
               <p className="text-lg font-semibold text-gray-900">
                 {promo && (
-                  <span>Rp {with_breakfast.price.toLocaleString("id-ID")}</span>
+                  <span>
+                    Rp{" "}
+                    {promo.price_with_breakfast?.toLocaleString("id-ID") ||
+                      with_breakfast.price.toLocaleString("id-ID")}
+                  </span>
                 )}
                 {!promo && (
                   <span>Rp {with_breakfast.price.toLocaleString("id-ID")}</span>
