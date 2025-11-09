@@ -12,8 +12,6 @@ export async function updateAccountProfile(
   try {
     const { agent_company, ...body } = input;
 
-    console.log({ body });
-
     const response = await apiCall(`profile`, {
       method: "PUT",
       body: JSON.stringify(body),
@@ -71,7 +69,7 @@ export async function changePassword(
       };
     }
 
-    revalidatePath("/setting/account-setting", "layout");
+    revalidatePath("/settings", "layout");
 
     return {
       success: true,
@@ -144,7 +142,7 @@ export async function updateAccountProfilePhoto(
       };
     }
 
-    revalidatePath("/setting/account-setting", "layout");
+    revalidatePath("/settings", "layout");
 
     return {
       success: true,
@@ -173,42 +171,110 @@ export async function updateAccountProfilePhoto(
 export async function uploadCertificate(
   formData: FormData,
 ): Promise<AccountSettingResponse> {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const file = formData.get("certificate");
 
-  const file = formData.get("certificate") as File;
-  console.log("Certificate upload input:", {
-    fileName: file?.name,
-    fileSize: file?.size,
-    fileType: file?.type,
-  });
+    if (!file || !(file instanceof File)) {
+      return {
+        success: false,
+        message: "Please provide a valid certificate file.",
+      };
+    }
 
-  if (!file) {
-    return { success: false, message: "No certificate file provided" };
+    const body = new FormData();
+
+    body.append("file_type", "certificate");
+    body.append("photo", file);
+
+    const response = await apiCall("profile/file", {
+      method: "PUT",
+      body,
+    });
+
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to upload certificate",
+      };
+    }
+
+    revalidatePath("/settings", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Certificate uploaded successfully",
+    };
+  } catch (error) {
+    console.error("Error uploading certificate:", error);
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to upload certificate",
+    };
   }
-
-  // Simulate success response
-  return { success: true, message: "Certificate uploaded successfully" };
 }
 
 // Simulate name card upload
 export async function uploadNameCard(
   formData: FormData,
 ): Promise<AccountSettingResponse> {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const file = formData.get("nameCard");
 
-  const file = formData.get("nameCard") as File;
-  console.log("Name card upload input:", {
-    fileName: file?.name,
-    fileSize: file?.size,
-    fileType: file?.type,
-  });
+    if (!file || !(file instanceof File)) {
+      return {
+        success: false,
+        message: "Please provide a valid name card file.",
+      };
+    }
 
-  if (!file) {
-    return { success: false, message: "No name card file provided" };
+    const body = new FormData();
+
+    body.append("file_type", "name_card");
+    body.append("photo", file);
+
+    const response = await apiCall("profile/file", {
+      method: "PUT",
+      body,
+    });
+
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to upload name card",
+      };
+    }
+
+    revalidatePath("/settings", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Name card uploaded successfully",
+    };
+  } catch (error) {
+    console.error("Error uploading name card:", error);
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to upload name card",
+    };
   }
-
-  // Simulate success response
-  return { success: true, message: "Name card uploaded successfully" };
 }
