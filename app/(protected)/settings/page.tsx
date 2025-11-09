@@ -48,7 +48,8 @@ const AccountSettingPage = async () => {
 
         <div className="col-span-4">
           <AdditionalSettingsSection
-            certificateUrl={formatUrl(accountProfile.certificate)}
+            certificateUrl={formatUrl(accountProfile.photo_profile)}
+            // certificateUrl={formatUrl(accountProfile.certificate)}
             nameCardUrl={formatUrl(accountProfile.name_card)}
           />
         </div>
