@@ -1,4 +1,5 @@
 export interface AccountProfile {
+  agent_company: string;
   certificate: string;
   email: string;
   full_name: string;
