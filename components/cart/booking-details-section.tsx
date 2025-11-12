@@ -21,7 +21,7 @@ import { useGuests } from "./guest-context";
 import { IconMoon } from "@tabler/icons-react";
 import ViewInvoiceDialog from "@/components/history-booking/dialog/view-invoice-dialog";
 import { fetchCart } from "@/app/(protected)/cart/fetch";
-import { removeFromCart } from "@/app/(protected)/cart/actions";
+import { checkoutCart, removeFromCart } from "@/app/(protected)/cart/actions";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface BookingDetailsSectionProps {
@@ -290,6 +290,7 @@ const BookingGrandTotalCard = ({
 }: {
   cartData: Awaited<ReturnType<typeof fetchCart>>["data"];
 }) => {
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [generatedBooking, setGeneratedBooking] =
@@ -322,13 +323,23 @@ const BookingGrandTotalCard = ({
 
   const onCheckOut = async () => {
     startTransition(async () => {
-      await delay(1000);
+      toast.promise(checkoutCart(), {
+        loading: "Checking out cart...",
+        success: ({ message }) => {
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          return message || "Cart checked out successfully!";
+        },
+        error: ({ message }) =>
+          message || "Failed to check out cart. Please try again.",
+      });
+
+      // await delay(1000);
 
       // Generate dummy booking data for invoice
       // const historyBooking = convertToHistoryBooking(cartData);
       // setGeneratedBooking(historyBooking);
 
-      toast.success("Checkout Success - Invoice Generated!");
+      // toast.success("Checkout Success - Invoice Generated!");
 
       // Show invoice dialog
       // setShowInvoiceDialog(true);
