@@ -7,13 +7,14 @@ import { fetchCart } from "./fetch";
 const CartPage = async () => {
   // Fetch booking details only since guest data is now handled by context
   const { data: cartData } = await fetchCart();
+  const guests = cartData.guest;
 
   return (
     <GuestProvider>
       <div className="container mx-auto space-y-6 py-6">
         <div className="grid gap-6">
           <React.Suspense fallback="Loading...">
-            <ContactDetailsSection />
+            <ContactDetailsSection guests={guests} cart_id={cartData.id} />
           </React.Suspense>
           <React.Suspense fallback="Loading...">
             <BookingDetailsSection cartData={cartData} />

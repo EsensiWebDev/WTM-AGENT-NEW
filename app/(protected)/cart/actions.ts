@@ -159,3 +159,93 @@ export async function checkoutCart(): Promise<ActionResponse<void>> {
     };
   }
 }
+
+export const addGuest = async (input: { cart_id: number; guest: string }) => {
+  const body = {
+    cart_id: input.cart_id,
+    guests: [input.guest],
+  };
+
+  try {
+    const response = await apiCall(`bookings/cart/guests`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to add guest",
+      };
+    }
+
+    revalidatePath("/cart", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Guest has been successfully added",
+    };
+  } catch (error) {
+    console.error("Error adding guest:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to add guest",
+    };
+  }
+};
+
+export const removeGuest = async (input: {
+  cart_id: number;
+  guest: string;
+}) => {
+  const body = {
+    cart_id: input.cart_id,
+    guest: [input.guest],
+  };
+
+  try {
+    const response = await apiCall(`bookings/cart/guests`, {
+      method: "DELETE",
+      body: JSON.stringify(body),
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to remove guest",
+      };
+    }
+
+    revalidatePath("/cart", "layout");
+
+    return {
+      success: true,
+      message: response.message || "Guest has been successfully removed",
+    };
+  } catch (error) {
+    console.error("Error removing guest:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to remove guest",
+    };
+  }
+};

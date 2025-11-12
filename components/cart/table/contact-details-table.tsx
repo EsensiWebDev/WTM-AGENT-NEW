@@ -9,27 +9,34 @@ import {
 } from "@tanstack/react-table";
 import React from "react";
 import { toast } from "sonner";
-import { useGuests } from "../guest-context";
 import { getContactDetailsTableColumns } from "./contact-details-columns";
+import { removeGuest } from "@/app/(protected)/cart/actions";
 
 interface ContactDetailsTableProps {
   data: ContactDetail[];
+  cart_id: number;
 }
 
-export function ContactDetailsTable({ data }: ContactDetailsTableProps) {
-  const { removeGuest } = useGuests();
-
-  const handleDeleteGuest = (contactDetail: ContactDetail) => {
-    // Extract index from the ID (format: "guest-{index}")
-    const index = parseInt(contactDetail.id.replace("guest-", ""));
-    removeGuest(index);
-    toast.success(`Guest "${contactDetail.name}" removed successfully`);
+export function ContactDetailsTable({
+  data,
+  cart_id,
+}: ContactDetailsTableProps) {
+  const handleRemoveGuest = (contactDetail: ContactDetail) => {
+    toast.promise(
+      removeGuest({ cart_id: cart_id, guest: contactDetail.name }),
+      {
+        loading: "Removing guest...",
+        success: ({ message }) => message || "Guest removed successfully!",
+        error: ({ message }) =>
+          message || "Failed to remove guest. Please try again.",
+      },
+    );
   };
 
   const columns = React.useMemo(
     () =>
       getContactDetailsTableColumns({
-        onDeleteGuest: handleDeleteGuest,
+        onDeleteGuest: handleRemoveGuest,
       }),
     [],
   );
