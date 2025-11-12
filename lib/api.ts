@@ -6,10 +6,9 @@ import { ApiResponse } from "@/types";
  */
 export async function apiCall<TData>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<TData>> {
   const response = await bffFetch(endpoint, options);
-
   if (!response.ok) {
     // Force user to logout
     // redirect("/logout");

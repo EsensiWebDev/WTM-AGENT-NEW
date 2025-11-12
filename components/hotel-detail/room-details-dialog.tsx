@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatUrl } from "@/lib/url-utils";
 import { getIcon } from "@/lib/utils";
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";
@@ -43,7 +44,7 @@ const ImageWithFallback: React.FC<{
   if (!src) {
     return (
       <div
-        className={`${className} flex items-center justify-center bg-gray-100`}
+        className={`${className} flex h-full items-center justify-center bg-gray-100`}
       >
         <div className="text-center">
           <div className="mx-auto h-12 w-12 text-gray-400" />
@@ -56,7 +57,7 @@ const ImageWithFallback: React.FC<{
   if (hasError) {
     return (
       <div
-        className={`${className} flex items-center justify-center bg-gray-100`}
+        className={`${className} flex h-full items-center justify-center bg-gray-100`}
       >
         <div className="text-center">
           <div className="mx-auto h-12 w-12 text-gray-400" />
@@ -68,7 +69,7 @@ const ImageWithFallback: React.FC<{
 
   return (
     <Image
-      src={src}
+      src={formatUrl(src)}
       alt={alt}
       className={className}
       fill={fill}

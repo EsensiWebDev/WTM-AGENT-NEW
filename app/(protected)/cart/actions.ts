@@ -2,6 +2,9 @@
 
 import { User } from "@/types/user";
 import { getContactDetails, saveContactDetails } from "./fetch";
+import { revalidatePath } from "next/cache";
+import { ActionResponse } from "@/types";
+import { apiCall } from "@/lib/api";
 
 export async function addUserAsGuest(user: User) {
   // Simulate API call delay
@@ -60,6 +63,53 @@ export async function deleteContactDetail(
     return {
       success: false,
       message: "An error occurred while deleting the contact.",
+    };
+  }
+}
+
+export async function removeFromCart(
+  cart_id: string,
+): Promise<ActionResponse<void>> {
+  try {
+    console.log("deleting cart", cart_id);
+
+    const response = await apiCall(`bookings/cart/${cart_id}`, {
+      method: "DELETE",
+    });
+
+    console.log({ response });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to remove room from cart",
+      };
+    }
+
+    revalidatePath("/cart", "layout");
+
+    return {
+      success: true,
+      message:
+        response.message || "Room has been successfully removed from cart",
+    };
+  } catch (error) {
+    console.error("Error removing room from cart:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to remove room from cart",
     };
   }
 }

@@ -2,11 +2,10 @@ import BookingDetailsSection from "@/components/cart/booking-details-section";
 import { ContactDetailsSection } from "@/components/cart/contact-details-section";
 import { GuestProvider } from "@/components/cart/guest-context";
 import React from "react";
-import { fetchCart, getBookingDetails } from "./fetch";
+import { fetchCart } from "./fetch";
 
 const CartPage = async () => {
   // Fetch booking details only since guest data is now handled by context
-  const bookingDetails = await getBookingDetails();
   const { data: cartData } = await fetchCart();
 
   return (
@@ -17,10 +16,7 @@ const CartPage = async () => {
             <ContactDetailsSection />
           </React.Suspense>
           <React.Suspense fallback="Loading...">
-            <BookingDetailsSection
-              bookingDetailsList={bookingDetails}
-              cartData={cartData}
-            />
+            <BookingDetailsSection cartData={cartData} />
           </React.Suspense>
         </div>
       </div>

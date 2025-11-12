@@ -1,6 +1,5 @@
 "use client";
 
-import { fetchCart } from "@/server/header";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { fetchCart } from "@/app/(protected)/cart/fetch";
 
 interface CartButtonProps {}
 

@@ -21,6 +21,8 @@ import { useGuests } from "./guest-context";
 import { IconMoon } from "@tabler/icons-react";
 import ViewInvoiceDialog from "@/components/history-booking/dialog/view-invoice-dialog";
 import { fetchCart } from "@/app/(protected)/cart/fetch";
+import { removeFromCart } from "@/app/(protected)/cart/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface BookingDetailsSectionProps {
   cartData: Awaited<ReturnType<typeof fetchCart>>["data"];
@@ -53,6 +55,7 @@ interface HotelRoomCardProps {
 }
 
 const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const { guestNames } = useGuests();
 
@@ -66,10 +69,15 @@ const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
 
   const discountedPrice = bookingDetails.price - couponDiscount.amount;
 
-  const onRemove = async () => {
+  const onRemove = async (id: string) => {
     startTransition(async () => {
-      await delay(1000);
-      toast.success("Reservation removed");
+      toast.promise(removeFromCart(id), {
+        loading: "Removing room from cart...",
+        success: ({ message }) =>
+          message || "Room removed from cart successfully!",
+        error: ({ message }) =>
+          message || "Failed to remove room from cart. Please try again.",
+      });
     });
   };
 
@@ -129,7 +137,7 @@ const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={onRemove}
+            onClick={() => onRemove(String(bookingDetails.id))}
             disabled={isPending}
           >
             {isPending ? (
@@ -209,7 +217,7 @@ const HotelRoomCard = ({ bookingDetails }: HotelRoomCardProps) => {
               <div className="col-span-1 md:col-span-2">
                 <span className="text-sm font-medium">{additional.name}</span>
               </div>
-              <div className="flex text-sm md:flex-col md:justify-start">
+              <div className="flex text-sm md:flex-col md:justify-center">
                 <span className="text-right text-sm font-medium">
                   {formatPrice(additional.price)}
                 </span>
