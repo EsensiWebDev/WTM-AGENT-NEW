@@ -58,13 +58,15 @@ const HistoryBookingTable = ({ promises }: HistoryBookingTableProps) => {
     pageCount: pagination?.total_pages || 1,
     getRowId: (originalRow) => originalRow.booking_id.toString(),
     shallow: false,
-    clearOnDefault: true,
+    // clearOnDefault: true,
     startTransition,
   });
 
   const [searchBy, setSearchBy] = useQueryState(
     "search_by",
-    parseAsString.withDefault("guest_name").withOptions({ shallow: false }),
+    parseAsString
+      .withDefault("guest_name")
+      .withOptions({ shallow: false, clearOnDefault: false }),
   );
 
   return (
