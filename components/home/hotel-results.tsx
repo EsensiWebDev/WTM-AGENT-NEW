@@ -89,7 +89,10 @@ const HotelList = ({ promise }: HotelListProps) => {
   } = hotelsData;
   const pageCount = pagination?.total_pages || 1;
 
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [page, setPage] = useQueryState(
+    "page",
+    parseAsInteger.withDefault(1).withOptions({ shallow: false }),
+  );
 
   const handleFirst = () => {
     if (page > 1) setPage(1);
@@ -178,7 +181,6 @@ const HotelList = ({ promise }: HotelListProps) => {
             </PaginationItem>
             <PaginationItem>
               <PaginationPrevious
-                href="#"
                 onClick={(e) => {
                   e.preventDefault();
                   handlePrev();
@@ -194,7 +196,6 @@ const HotelList = ({ promise }: HotelListProps) => {
                   <PaginationEllipsis />
                 ) : (
                   <PaginationLink
-                    href="#"
                     isActive={pageNumber === page}
                     onClick={(e) => {
                       e.preventDefault();
@@ -209,7 +210,6 @@ const HotelList = ({ promise }: HotelListProps) => {
 
             <PaginationItem>
               <PaginationNext
-                href="#"
                 onClick={(e) => {
                   e.preventDefault();
                   handleNext();

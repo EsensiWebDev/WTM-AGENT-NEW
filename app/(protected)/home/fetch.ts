@@ -8,7 +8,13 @@ export const getHotels = async ({
 }: {
   searchParams: SearchParams;
 }): Promise<ApiResponse<HotelListData>> => {
-  const queryString = buildQueryParams(searchParams);
+  const searchParamsWithDefaults = {
+    ...searchParams,
+    limit: searchParams.limit || "9",
+    page: searchParams.page || "1",
+  };
+
+  const queryString = buildQueryParams(searchParamsWithDefaults);
   const url = `/hotels/agent${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<HotelListData>(url);
 
