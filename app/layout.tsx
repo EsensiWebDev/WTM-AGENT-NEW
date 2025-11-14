@@ -9,6 +9,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
+export const maxDuration = 30;
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
