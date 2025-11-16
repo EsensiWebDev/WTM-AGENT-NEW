@@ -12,6 +12,7 @@ const HomePage = async (props: HomePageProps) => {
   const hotelsPromise = getHotels({
     searchParams,
   });
+
   return (
     <div className="space-y-16">
       <div className="relative">

@@ -3,6 +3,7 @@
 import { apiCall } from "@/lib/api";
 import { ActionResponse } from "@/types";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export interface AddToCartRequest {
   check_in_date: string;
@@ -17,9 +18,15 @@ export async function addRoomToCart(
   input: AddToCartRequest,
 ): Promise<ActionResponse<void>> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
+
     const response = await apiCall(`bookings/cart`, {
       method: "POST",
       body: JSON.stringify(input),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {

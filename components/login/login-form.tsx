@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import HBLogo from "@/public/hb_logo.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
-import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,6 +35,7 @@ export function LoginForm({
   ...props
 }: LoginFormProps) {
   const [isPending, startTransition] = React.useTransition();
+  const { setAccessToken } = useAuth();
   const router = useRouter();
 
   const safeCallbackUrl = React.useMemo(() => {
@@ -54,56 +56,19 @@ export function LoginForm({
   function onSubmit(input: LoginSchema) {
     startTransition(async () => {
       try {
-        const result = await signIn("credentials", {
-          redirect: false,
-          username: input.username,
-          password: input.password,
-          callbackUrl: safeCallbackUrl ?? undefined,
+        const res = await api("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify(input),
         });
 
-        if (result?.error) {
-          const message =
-            result.error === "CredentialsSignin"
-              ? "Invalid username or password"
-              : result.error;
-          toast.error(message || "Login failed. Please try again.");
-          return;
-        }
-
-        if (result?.ok) {
-          toast.success("Login successful");
-          router.push(safeCallbackUrl ?? "/home");
-        } else {
-          toast.error("Login failed. Please try again.");
-        }
-      } catch (err) {
-        console.error("Login error:", err);
-        toast.error("An error occurred. Please try again.");
+        setAccessToken(res.data.token);
+        toast.success("Login successful");
+        router.push(safeCallbackUrl ?? "/home");
+      } catch (err: any) {
+        toast.error(err.message || "Login Failed");
       }
     });
   }
-
-  // function onSubmit(input: LoginSchema) {
-  //   startTransition(async () => {
-  //     try {
-  //       // const formData = new FormData();
-  //       // formData.append("email", input.username);
-  //       // formData.append("password", input.password);
-
-  //       const result = await loginAction(input);
-
-  //       if (result.success) {
-  //         toast.success(result.message || "Login successful");
-  //         router.push("/home");
-  //       } else {
-  //         toast.error(result.message || "Login failed. Please try again.");
-  //       }
-  //     } catch (err) {
-  //       console.error("Login error:", err);
-  //       toast.error("An error occurred. Please try again.");
-  //     }
-  //   });
-  // }
 
   return (
     <div className={cn("w-full max-w-md space-y-8", className)} {...props}>

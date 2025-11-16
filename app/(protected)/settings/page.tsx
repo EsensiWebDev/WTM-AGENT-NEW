@@ -27,8 +27,8 @@ const AccountSettingPage = async () => {
           <div className="mb-2 font-medium">Profile photo</div>
 
           <ProfilePhotoUploader
-            photoUrl={formatUrl(accountProfile.photo_profile)}
-            fullName={accountProfile.full_name}
+            photoUrl={formatUrl(accountProfile?.photo_profile)}
+            fullName={accountProfile?.full_name}
           />
         </div>
       </div>
@@ -48,8 +48,8 @@ const AccountSettingPage = async () => {
 
         <div className="col-span-4">
           <AdditionalSettingsSection
-            certificateUrl={formatUrl(accountProfile.certificate)}
-            nameCardUrl={formatUrl(accountProfile.name_card)}
+            certificateUrl={formatUrl(accountProfile?.certificate)}
+            nameCardUrl={formatUrl(accountProfile?.name_card)}
           />
         </div>
       </div>

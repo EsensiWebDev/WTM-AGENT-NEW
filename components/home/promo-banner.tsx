@@ -33,6 +33,25 @@ const promoData = [
 ];
 
 export function PromoBanner() {
+  // const { accessToken } = useAuth();
+
+  // const {
+  //   data: dataProfile,
+  //   isLoading: isLoadingProfile,
+  //   isError: isErrorProfile,
+  //   error: errorProfile,
+  // } = useQuery({
+  //   queryKey: ["hotels"],
+  //   queryFn: async (): Promise<ApiResponse<HotelListData>> => {
+  //     return await api("/api/hotels/agent", {
+  //       method: "GET",
+  //       headers: { Authorization: `Bearer ${accessToken}` },
+  //     });
+  //   },
+  //   staleTime: 1000 * 60 * 5, // 5 minutes
+  //   retry: 2,
+  // });
+
   return (
     <div className="relative mb-4 w-full">
       <Carousel

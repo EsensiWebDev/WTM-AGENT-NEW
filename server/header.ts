@@ -2,6 +2,7 @@
 
 import { apiCall } from "@/lib/api";
 import { ApiResponse } from "@/types";
+import { cookies } from "next/headers";
 
 export type Notification = {
   id: number;
@@ -16,8 +17,15 @@ export type Notification = {
 export async function fetchNotifications(): Promise<
   ApiResponse<Notification[]>
 > {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
   const url = `/notifications`;
-  const apiResponse = await apiCall<Notification[]>(url);
+  const apiResponse = await apiCall<Notification[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   return apiResponse;
 }

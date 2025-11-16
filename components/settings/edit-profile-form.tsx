@@ -47,11 +47,11 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      full_name: defaultValues.full_name || "",
-      agent_company: defaultValues.agent_company || "",
-      email: defaultValues.email || "",
-      phone: defaultValues.phone || "",
-      kakao_talk_id: defaultValues.kakao_talk_id || "",
+      full_name: defaultValues?.full_name || "",
+      agent_company: defaultValues?.agent_company || "",
+      email: defaultValues?.email || "",
+      phone: defaultValues?.phone || "",
+      kakao_talk_id: defaultValues?.kakao_talk_id || "",
     },
   });
 

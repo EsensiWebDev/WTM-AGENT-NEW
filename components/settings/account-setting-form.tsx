@@ -12,9 +12,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -40,41 +41,34 @@ interface AccountSettingFormProps {
 
 const AccountSettingForm = ({ defaultValues }: AccountSettingFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session } = useSession();
-
-  const user = session?.user;
+  const router = useRouter();
+  const { refresh } = useAuth();
 
   const form = useForm<PasswordChangeSchema>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
-      username: defaultValues.username,
+      username: defaultValues?.username,
       old_password: "",
       new_password: "",
       confirm_password: "",
     },
   });
 
-  function onSubmit(values: PasswordChangeSchema) {
+  async function onSubmit(values: PasswordChangeSchema) {
     setIsLoading(true);
 
-    if (!user?.username) {
-      toast.error("User not found");
-      setIsLoading(false);
-      return;
-    }
+    const { success, message } = await changePassword(values);
 
-    toast.promise(changePassword(values), {
-      loading: "Changing password...",
-      success: (data) => {
-        setIsLoading(false);
-        form.reset();
-        return data.message || "Password changed successfully";
-      },
-      error: (error) => {
-        setIsLoading(false);
-        return error.message || "Failed to change password";
-      },
-    });
+    if (success) {
+      await refresh();
+      router.refresh();
+      form.reset();
+      toast.success(message || "Password changed successfully");
+      setIsLoading(false);
+    } else {
+      toast.error(message || "Failed to change password");
+      setIsLoading(false);
+    }
   }
 
   return (

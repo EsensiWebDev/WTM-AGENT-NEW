@@ -1,15 +1,9 @@
 "use client";
 
-import { fetchAccountProfile } from "@/app/(protected)/settings/fetch";
-import { formatUrl } from "@/lib/url-utils";
-import { useQuery } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React from "react";
 import { Logo } from "../logo";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Button } from "../ui/button";
 import { CartButton } from "./cart-button";
 import { DesktopNavigation } from "./desktop-navigation";
 import { MobileMenu } from "./mobile-menu";
@@ -35,33 +29,15 @@ const menuItems = [
 ];
 
 export const Header = () => {
-  const router = useRouter();
   const [menuState, setMenuState] = React.useState(false);
+  const { accessToken } = useAuth();
 
-  const { data: session, status } = useSession();
-
-  const isLoading = status === "loading";
-  const isAuthenticated = !!session?.user;
-
-  const handleSignIn = () => {
-    router.push("/login");
-  };
+  const isAuthenticated = !!accessToken;
 
   // Filter menu items based on authentication status
   const filteredMenuItems = menuItems.filter(
     (item) => item.isPublic || isAuthenticated,
   );
-
-  const {
-    data: dataProfile,
-    isLoading: isLoadingProfile,
-    isError: isErrorProfile,
-  } = useQuery({
-    queryKey: ["profile"],
-    queryFn: fetchAccountProfile,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 2,
-  });
 
   return (
     <header>
@@ -98,32 +74,12 @@ export const Header = () => {
                   <>
                     <CartButton />
                     <NotificationButton />
+                    <NavUser />
                   </>
                 ) : (
-                  <></>
-                )}
-
-                {/* Conditionally render sign-in button or user menu */}
-                {isLoading || isLoadingProfile ? (
-                  <div className="h-10 w-10 animate-pulse rounded-full bg-gray-300" />
-                ) : session?.user ? (
-                  <NavUser
-                    user={{
-                      name: dataProfile?.data.full_name || "User",
-                      email: dataProfile?.data.email || "",
-                      avatar: formatUrl(dataProfile?.data.photo_profile) || "",
-                    }}
-                  />
-                ) : (
-                  <Button onClick={handleSignIn} variant={"ghost"}>
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={""} alt={"Not logged In"} />
-                      <AvatarFallback className="rounded-lg"></AvatarFallback>
-                    </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">Sign in</span>
-                    </div>
-                  </Button>
+                  <>
+                    <NavUser />
+                  </>
                 )}
               </div>
             </div>

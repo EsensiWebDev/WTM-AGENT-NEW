@@ -1,14 +1,20 @@
+"use server";
+
 import { apiCall } from "@/lib/api";
 import { buildQueryParams } from "@/lib/utils";
 import { ApiResponse, SearchParams } from "@/types";
-import { HotelListData } from "./types";
 import { format } from "date-fns";
+import { cookies } from "next/headers";
+import { HotelListData } from "./types";
 
 export const getHotels = async ({
   searchParams,
 }: {
   searchParams: SearchParams;
 }): Promise<ApiResponse<HotelListData>> => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
   // Get today and tomorrow dates
   const today = new Date();
   const tomorrow = new Date(today);
@@ -24,7 +30,11 @@ export const getHotels = async ({
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
   const url = `/hotels/agent${queryString ? `?${queryString}` : ""}`;
-  const apiResponse = await apiCall<HotelListData>(url);
+  const apiResponse = await apiCall<HotelListData>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   return apiResponse;
 };

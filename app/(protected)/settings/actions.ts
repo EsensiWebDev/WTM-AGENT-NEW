@@ -4,17 +4,24 @@ import { PasswordChangeSchema } from "@/components/settings/account-setting-form
 import { ProfileSchema } from "@/components/settings/edit-profile-form";
 import { apiCall } from "@/lib/api";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { AccountSettingResponse, LanguageChange } from "./types";
 
 export async function updateAccountProfile(
   input: ProfileSchema,
 ): Promise<AccountSettingResponse> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
+
     const { agent_company, ...body } = input;
 
     const response = await apiCall(`profile`, {
       method: "PUT",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {
@@ -53,6 +60,8 @@ export async function changePassword(
   input: PasswordChangeSchema,
 ): Promise<AccountSettingResponse> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
     const body = {
       ...input,
     };
@@ -60,6 +69,9 @@ export async function changePassword(
     const response = await apiCall(`profile/setting`, {
       method: "PUT",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {
@@ -69,7 +81,7 @@ export async function changePassword(
       };
     }
 
-    revalidatePath("/settings", "layout");
+    // revalidatePath("/settings", "layout");
 
     return {
       success: true,
@@ -114,6 +126,8 @@ export async function updateAccountProfilePhoto(
   formData: FormData,
 ): Promise<AccountSettingResponse> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
     const file = formData.get("photo_profile");
 
     if (!file || !(file instanceof File)) {
@@ -130,10 +144,11 @@ export async function updateAccountProfilePhoto(
 
     const response = await apiCall("profile/file", {
       method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
       body,
     });
-
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -172,6 +187,8 @@ export async function uploadCertificate(
   formData: FormData,
 ): Promise<AccountSettingResponse> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
     const file = formData.get("certificate");
 
     if (!file || !(file instanceof File)) {
@@ -188,6 +205,9 @@ export async function uploadCertificate(
 
     const response = await apiCall("profile/file", {
       method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
       body,
     });
 
@@ -228,6 +248,8 @@ export async function uploadNameCard(
   formData: FormData,
 ): Promise<AccountSettingResponse> {
   try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
     const file = formData.get("nameCard");
 
     if (!file || !(file instanceof File)) {
@@ -244,6 +266,9 @@ export async function uploadNameCard(
 
     const response = await apiCall("profile/file", {
       method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
       body,
     });
 

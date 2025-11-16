@@ -1,6 +1,7 @@
 "use server";
 
 import { apiCall } from "@/lib/api";
+import { cookies } from "next/headers";
 import { UserAccountData } from "./types";
 
 export async function fetchUserAccount(): Promise<UserAccountData> {
@@ -18,19 +19,15 @@ export async function fetchUserAccount(): Promise<UserAccountData> {
 export async function fetchUserBookings(): Promise<
   { label: string; value: string }[]
 > {
-  // await delay(1000);
-
-  // return [
-  //   { label: "Hotel Bali Paradise - Booking #BK001", value: "BK-001" },
-  //   { label: "Hotel Jakarta Grand - Booking #BK002", value: "BK-002" },
-  //   { label: "Hotel Yogyakarta Heritage - Booking #BK003", value: "BK-003" },
-  //   { label: "Hotel Bandung Hills - Booking #BK004", value: "BK-004" },
-  // ];
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
 
   const url = `bookings/ids`;
-  const apiResponse = await apiCall<string[]>(url);
-
-  console.log({ data: apiResponse.data });
+  const apiResponse = await apiCall<string[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   if (apiResponse.status === 200 && Array.isArray(apiResponse.data)) {
     return apiResponse.data.map((id) => ({
@@ -45,23 +42,15 @@ export async function fetchUserBookings(): Promise<
 export async function fetchUserSubBookings(
   booking_id: string,
 ): Promise<{ label: string; value: string }[]> {
-  // await delay(1000);
-
-  // void booking_id;
-
-  // return [
-  //   {
-  //     label: `Booking ${booking_id}-SB-001`,
-  //     value: `${booking_id}-SB-001`,
-  //   },
-  //   {
-  //     label: `Booking ${booking_id}-SB-002`,
-  //     value: `${booking_id}-SB-002`,
-  //   },
-  // ];
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
 
   const url = `bookings/${booking_id}/sub-ids`;
-  const apiResponse = await apiCall<string[]>(url);
+  const apiResponse = await apiCall<string[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   console.log({ data: apiResponse.data });
 

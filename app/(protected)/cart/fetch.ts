@@ -1,7 +1,8 @@
 "use server";
-import { BookingDetail, Cart, ContactDetail } from "./types";
-import { ApiResponse } from "@/types";
 import { apiCall } from "@/lib/api";
+import { ApiResponse } from "@/types";
+import { cookies } from "next/headers";
+import { BookingDetail, Cart, ContactDetail } from "./types";
 
 export async function getContactDetails(): Promise<ContactDetail[]> {
   // Simulate API delay
@@ -106,8 +107,15 @@ export async function saveContactDetails(
 }
 
 export async function fetchCart(): Promise<ApiResponse<Cart>> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
   const url = `/bookings/cart`;
-  const apiResponse = await apiCall<Cart>(url);
+  const apiResponse = await apiCall<Cart>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   return apiResponse;
 }

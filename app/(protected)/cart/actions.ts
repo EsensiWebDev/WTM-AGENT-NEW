@@ -4,6 +4,7 @@ import { apiCall } from "@/lib/api";
 import { ActionResponse } from "@/types";
 import { User } from "@/types/user";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { getContactDetails, saveContactDetails } from "./fetch";
 
 export async function addUserAsGuest(user: User) {
@@ -71,13 +72,15 @@ export async function removeFromCart(
   cart_id: string,
 ): Promise<ActionResponse<void>> {
   try {
-    console.log("deleting cart", cart_id);
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
 
     const response = await apiCall(`bookings/cart/${cart_id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
-
-    console.log({ response });
 
     if (response.status !== 200) {
       return {
@@ -121,10 +124,15 @@ export async function checkoutCart(): Promise<ActionResponse<void>> {
   //   success: true,
   //   message: "Cart has been successfully checked out",
   // };
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
 
   try {
     const response = await apiCall(`bookings/checkout`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {
@@ -160,6 +168,8 @@ export async function checkoutCart(): Promise<ActionResponse<void>> {
 }
 
 export const addGuest = async (input: { cart_id: number; guest: string }) => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
   const body = {
     cart_id: input.cart_id,
     guests: [input.guest],
@@ -169,6 +179,9 @@ export const addGuest = async (input: { cart_id: number; guest: string }) => {
     const response = await apiCall(`bookings/cart/guests`, {
       method: "POST",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {
@@ -206,6 +219,8 @@ export const removeGuest = async (input: {
   cart_id: number;
   guest: string;
 }) => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
   const body = {
     cart_id: input.cart_id,
     guest: [input.guest],
@@ -215,6 +230,9 @@ export const removeGuest = async (input: {
     const response = await apiCall(`bookings/cart/guests`, {
       method: "DELETE",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {
@@ -253,6 +271,8 @@ export const selectGuest = async (input: {
   sub_cart_id: number;
   guest: string;
 }) => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
   const body = {
     ...input,
   };
@@ -261,6 +281,9 @@ export const selectGuest = async (input: {
     const response = await apiCall(`bookings/cart/sub-guest`, {
       method: "POST",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (response.status !== 200) {

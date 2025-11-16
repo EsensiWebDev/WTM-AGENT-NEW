@@ -1,11 +1,15 @@
 "use server";
 
 import { apiCall } from "@/lib/api";
+import { cookies } from "next/headers";
 import { ContactUsResponse, ContactUsSchema } from "./types";
 
 export async function submitContactUs(
   formData: ContactUsSchema,
 ): Promise<ContactUsResponse> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
   try {
     let body: Partial<ContactUsSchema> = {};
     if (formData.type === "general") {
@@ -21,9 +25,10 @@ export async function submitContactUs(
     const response = await apiCall(`email/contact-us`, {
       method: "POST",
       body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
-
-    console.log({ body, response });
 
     if (response.status !== 200) {
       return {
