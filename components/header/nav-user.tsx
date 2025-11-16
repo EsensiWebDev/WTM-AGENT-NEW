@@ -38,6 +38,7 @@ export const NavUser = () => {
     queryFn: fetchAccountProfile,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
+    enabled: isAuthenticated,
   });
 
   const user = {
