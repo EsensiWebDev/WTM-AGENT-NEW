@@ -87,11 +87,11 @@ function DistrictCard({
                 ? "bg-primary text-white hover:text-white"
                 : "bg-white text-gray-800 hover:bg-gray-200",
             )}
+            onClick={() => handleDistrictChange(district)}
           >
             <Checkbox
               id={district}
               checked={selectedDistricts?.includes(district)}
-              onCheckedChange={() => handleDistrictChange(district)}
               className="sr-only"
             />
             <TooltipProvider>
@@ -100,6 +100,7 @@ function DistrictCard({
                   <label
                     htmlFor={district}
                     className="max-w-full cursor-pointer truncate text-center text-xs"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {district}
                   </label>
