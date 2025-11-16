@@ -31,7 +31,7 @@ interface HotelResultsProps {
 const HotelResults = ({ promise }: HotelResultsProps) => {
   const hotelsData = React.use(promise);
 
-  const { status } = hotelsData;
+  const { data, status, message } = hotelsData;
 
   if (status !== 200) return "Error loading data";
 

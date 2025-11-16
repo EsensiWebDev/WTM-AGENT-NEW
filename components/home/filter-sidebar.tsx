@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
-  parseAsArrayOf,
   parseAsInteger,
+  parseAsNativeArrayOf,
   parseAsString,
   useQueryState,
   useQueryStates,
@@ -39,7 +39,7 @@ function DistrictCard({
   const [showAll, setShowAll] = useState(false);
   const [selectedDistricts, setSelectedDistricts] = useQueryState(
     "district",
-    parseAsArrayOf(parseAsString)
+    parseAsNativeArrayOf(parseAsString)
       .withDefault([])
       .withOptions({ shallow: false }),
   );
@@ -82,7 +82,7 @@ function DistrictCard({
           <div
             key={district}
             className={cn(
-              "border-input ring-offset-priomary hover:bg-primary/90 focus-visible:ring-ring flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+              "border-input ring-offset-priomary hover:bg-primary/90 focus-visible:ring-ring flex cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
               selectedDistricts?.includes(district)
                 ? "bg-primary text-white hover:text-white"
                 : "bg-white text-gray-800 hover:bg-gray-200",
@@ -155,7 +155,7 @@ function PriceRangeCard({ filter_pricing }: { filter_pricing: FilterPricing }) {
           max={10_000_000}
           step={50_000}
           className={"py-2"}
-          onValueChange={async (e) => {
+          onValueCommit={async (e) => {
             await setPrices({
               range_price_min: e[0],
               range_price_max: e[1],
@@ -178,7 +178,7 @@ function StarRatingCard({
 }) {
   const [star, setStar] = useQueryState(
     "rating",
-    parseAsArrayOf(parseAsString)
+    parseAsNativeArrayOf(parseAsString)
       .withDefault([])
       .withOptions({ shallow: false }),
   );
@@ -223,7 +223,7 @@ export function BedTypeCard({
 }) {
   const [bedType, setBedType] = useQueryState(
     "bed_type_id",
-    parseAsArrayOf(parseAsString)
+    parseAsNativeArrayOf(parseAsString)
       .withDefault([])
       .withOptions({ shallow: false }),
   );
@@ -280,7 +280,7 @@ function BedroomTypeCard({
 }) {
   const [bedRoomType, setBedRoomType] = useQueryState(
     "total_rooms",
-    parseAsArrayOf(parseAsString)
+    parseAsNativeArrayOf(parseAsString)
       .withDefault([])
       .withOptions({ shallow: false }),
   );
