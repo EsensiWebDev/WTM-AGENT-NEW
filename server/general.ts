@@ -43,3 +43,23 @@ export async function fetchListPaymentStatus() {
 
   return [];
 }
+
+export async function fetchListProvince() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+  const url = `hotels/provinces`;
+  const apiResponse = await apiCall<string[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (apiResponse.status === 200 && Array.isArray(apiResponse.data)) {
+    return apiResponse.data.map((province) => ({
+      label: province,
+      value: province,
+    }));
+  }
+
+  return [];
+}

@@ -33,6 +33,8 @@ const HotelResults = ({ promise }: HotelResultsProps) => {
 
   const { data, status, message } = hotelsData;
 
+  console.log({ data });
+
   if (status !== 200) return "Error loading data";
 
   return (

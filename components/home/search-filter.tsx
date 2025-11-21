@@ -27,6 +27,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { fetchListProvince } from "@/server/general";
 import {
   createParser,
   parseAsInteger,
@@ -34,7 +35,7 @@ import {
   useQueryState,
   useQueryStates,
 } from "nuqs";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import {
   Accordion,
@@ -52,12 +53,18 @@ import {
 } from "../ui/command";
 import { Input } from "../ui/input";
 
-const SearchFilter = () => {
+const SearchFilter = ({
+  provincesPromise,
+}: {
+  provincesPromise: Promise<Awaited<ReturnType<typeof fetchListProvince>>>;
+}) => {
+  const provinces = React.use(provincesPromise);
+
   return (
     <section className="mb-0 py-4">
       <div className="mx-4 rounded border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm">
         <div className="flex flex-col gap-2 sm:flex-row">
-          <LocationSelector />
+          <LocationSelector provinces={provinces} />
           <DateRangePicker />
           <GuestCounter />
           <PromoButton />
@@ -67,32 +74,16 @@ const SearchFilter = () => {
   );
 };
 
-const places = [
-  {
-    value: "bali",
-    label: "Bali",
-  },
-  {
-    value: "jakarta",
-    label: "Jakarta",
-  },
-  {
-    value: "surabaya",
-    label: "Surabaya",
-  },
-  {
-    value: "malang",
-    label: "Malang",
-  },
-  {
-    value: "bandung",
-    label: "Bandung",
-  },
-];
-
-const LocationSelector = () => {
+const LocationSelector = ({
+  provinces,
+}: {
+  provinces: Awaited<ReturnType<typeof fetchListProvince>>;
+}) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useQueryState("location", parseAsString);
+  const [value, setValue] = useQueryState(
+    "province",
+    parseAsString.withOptions({ shallow: false }),
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -107,7 +98,7 @@ const LocationSelector = () => {
             <MapPin className={"h-4 w-4"} />
             <span>
               {value
-                ? places.find((place) => place.value === value)?.label
+                ? provinces.find((place) => place.value === value)?.label
                 : "Choose your destination"}
             </span>
           </div>
@@ -123,12 +114,16 @@ const LocationSelector = () => {
           <CommandList>
             <CommandEmpty>Not Found</CommandEmpty>
             <CommandGroup>
-              {places.map((place) => (
+              {provinces.map((place) => (
                 <CommandItem
                   key={place.value}
                   value={place.value}
                   onSelect={(currentValue) => {
-                    setValue(currentValue);
+                    if (value === currentValue) {
+                      setValue(null);
+                    } else {
+                      setValue(currentValue);
+                    }
                     setOpen(false);
                   }}
                 >
