@@ -44,6 +44,8 @@ export function LoginForm({
 
     if (!trimmed.startsWith("/")) return null;
     if (trimmed.startsWith("//")) return null;
+    // Prevent redirecting to logout page after successful login
+    if (trimmed === "/logout") return null;
 
     return trimmed;
   }, [callbackUrl]);

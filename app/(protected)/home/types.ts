@@ -40,6 +40,14 @@ export interface HotelListData {
   total: number;
 }
 
+export interface PromoHomePage {
+  code: string;
+  description: string;
+  hotel: string[];
+  id: number;
+  name: string;
+}
+
 export interface HomePageProps {
   searchParams: Promise<SearchParams>;
 }

@@ -53,6 +53,8 @@ import {
   CommandList,
 } from "../ui/command";
 import { Input } from "../ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { getPromos } from "@/app/(protected)/home/fetch";
 
 const SearchFilter = ({
   provincesPromise,
@@ -469,13 +471,26 @@ const PromoButton = () => {
     parseAsString,
   );
 
+  const {
+    data: promosData,
+    isLoading: isLoadingPromos,
+    isError: isErrorPromos,
+  } = useQuery({
+    queryKey: ["promo-home-page"],
+    queryFn: () => getPromos({ searchParams: { limit: "0" } }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
+    enabled: open,
+  });
+
   // Filter promos based on search term
-  const filteredPromos = promoData?.filter(
-    (promo) =>
-      promo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      promo.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      promo.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredPromos =
+    promosData?.data?.filter(
+      (promo) =>
+        promo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        promo.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        promo.description.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) || [];
 
   const handlePromoSelect = (promoCode: string) => {
     setSelectedPromo(promoCode);
@@ -514,7 +529,17 @@ const PromoButton = () => {
 
           {/* Promo Accordion List */}
           <div className="space-y-2">
-            {filteredPromos.length > 0 ? (
+            {isLoadingPromos ? (
+              <div className="py-8 text-center text-gray-500">
+                <p className="text-lg font-medium">Loading promos...</p>
+              </div>
+            ) : isErrorPromos ? (
+              <div className="py-8 text-center text-gray-500">
+                <CirclePercent className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                <p className="text-lg font-medium">Error loading promos</p>
+                <p className="text-sm">Please try again later.</p>
+              </div>
+            ) : filteredPromos.length > 0 ? (
               <Accordion type="single" collapsible className="w-full">
                 {filteredPromos.map((promo) => (
                   <AccordionItem key={promo.id} value={`promo-${promo.id}`}>
@@ -522,7 +547,7 @@ const PromoButton = () => {
                       <AccordionTrigger className="flex-1 text-left hover:no-underline">
                         <div className="mr-2 flex flex-col items-start">
                           <h3 className="text-lg font-semibold">
-                            {promo.title}
+                            {promo.name}
                           </h3>
                         </div>
                       </AccordionTrigger>
@@ -538,12 +563,12 @@ const PromoButton = () => {
                     <AccordionContent>
                       {/* Hotels in this promo */}
                       <div className="space-y-1">
-                        {promo.hotels.map((hotel) => (
+                        {promo.hotel.map((hotelName, index) => (
                           <h5
-                            key={`${promo.id}-${hotel.id}`}
+                            key={`${promo.id}-${index}`}
                             className="text-muted-foreground"
                           >
-                            {hotel.name}
+                            {hotelName}
                           </h5>
                         ))}
                       </div>
