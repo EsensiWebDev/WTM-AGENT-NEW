@@ -47,6 +47,9 @@ export async function fetchListPaymentStatus() {
 export async function fetchListProvince() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
+
+  if (!accessToken) return [];
+
   const url = `hotels/provinces`;
   const apiResponse = await apiCall<string[]>(url, {
     headers: {

@@ -47,6 +47,13 @@ export const getPromos = async ({
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
 
+  if (!accessToken)
+    return {
+      status: 401,
+      message: "Unauthorized",
+      data: [],
+    };
+
   const queryString = buildQueryParams(searchParams);
   const url = `/promos/agent${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<PromoHomePage[]>(url, {
