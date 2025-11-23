@@ -113,7 +113,7 @@ export function LoginForm({
               error={form.formState.errors.password?.message}
             />
             <a
-              href="#"
+              href="/forgot-password"
               className="text-muted-foreground mt-2 block text-right text-sm underline-offset-4 hover:underline"
             >
               Forgot your password?

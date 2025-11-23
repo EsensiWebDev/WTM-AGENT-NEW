@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register", "/home"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/home",
+  "/forgot-password",
+  "/reset-password",
+];
 const AUTHENTICATED_REDIRECT_PATH = "/home";
 
 export function middleware(req: NextRequest) {
