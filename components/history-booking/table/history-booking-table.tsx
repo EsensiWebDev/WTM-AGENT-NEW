@@ -46,6 +46,8 @@ const HistoryBookingTable = ({ promises }: HistoryBookingTableProps) => {
   const [selectedBookingForReceipt, setSelectedBookingForReceipt] =
     React.useState<{ bookingId?: string; subBookingId?: string } | null>(null);
 
+  console.log({ data });
+
   const columns = React.useMemo(
     () =>
       getHistoryBookingTableColumns({

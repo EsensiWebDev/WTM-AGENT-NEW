@@ -163,7 +163,7 @@ export function getHistoryBookingTableColumns({
                   </Badge>
                 )}
               </DropdownMenuItem>
-              {row.original.payment_status.toLowerCase() === "paid" && (
+              {row.original.receipts && row.original.receipts?.length > 0 && (
                 <DropdownMenuItem
                   onSelect={() => setRowAction({ row, variant: "receipt" })}
                 >

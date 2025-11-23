@@ -58,7 +58,7 @@ export interface HistoryBooking {
   payment_status: string;
   detail: SubBookingDetail[];
   invoices: InvoiceData[];
-  receipts: string | null;
+  receipts: string[] | null;
   notes?: string;
 }
 
