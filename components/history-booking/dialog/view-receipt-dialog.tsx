@@ -24,12 +24,14 @@ interface ViewReceiptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: HistoryBooking | null;
+  invoiceIndex?: number;
 }
 
 const ViewReceiptDialog: React.FC<ViewReceiptDialogProps> = ({
   open,
   onOpenChange,
   booking,
+  invoiceIndex,
 }) => {
   const [currentReceiptIndex, setCurrentReceiptIndex] = useState(0);
 
@@ -37,9 +39,16 @@ const ViewReceiptDialog: React.FC<ViewReceiptDialogProps> = ({
     return null;
   }
 
-  const receipts = booking.receipts || [];
+  // If invoiceIndex is provided, show only the receipt for that specific invoice
+  // Otherwise, show all receipts with navigation
+  const allReceipts = booking.receipts || [];
+  const receipts =
+    invoiceIndex !== undefined && allReceipts[invoiceIndex]
+      ? [allReceipts[invoiceIndex]]
+      : allReceipts;
   const hasReceipts = receipts.length > 0;
   const currentReceipt = receipts[currentReceiptIndex];
+  const showNavigation = invoiceIndex === undefined && receipts.length > 1;
 
   const navigateToPrevious = () => {
     if (currentReceiptIndex > 0) {
@@ -64,7 +73,7 @@ const ViewReceiptDialog: React.FC<ViewReceiptDialogProps> = ({
             </div>
 
             {/* Navigation arrows for multiple receipts */}
-            {receipts.length > 1 && (
+            {showNavigation && (
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"

@@ -26,6 +26,7 @@ const HistoryBookingPage = async (props: HistoryBookingPageProps) => {
       </div>
       <div className="w-full">
         <React.Suspense
+          key={Math.random()}
           fallback={
             <DataTableSkeleton
               columnCount={7}

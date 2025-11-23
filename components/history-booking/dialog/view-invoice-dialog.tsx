@@ -20,6 +20,7 @@ import {
   IconCloudUpload,
   IconFileDescription,
   IconFileText,
+  IconReceipt,
   IconRosetteDiscount,
 } from "@tabler/icons-react";
 import { format, isValid } from "date-fns";
@@ -27,6 +28,7 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import { NewInvoiceData } from "./new-invoice-pdf-document";
 import { UploadReceiptDialog } from "./upload-receipt-dialog";
+import ViewReceiptDialog from "./view-receipt-dialog";
 
 /**
  * Validates and formats a date string. Returns formatted date or error message.
@@ -88,6 +90,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
     isLoading: false,
   });
   const [uploadReceiptOpen, setUploadReceiptOpen] = useState(false);
+  const [viewReceiptOpen, setViewReceiptOpen] = useState(false);
   const [currentInvoiceIndex, setCurrentInvoiceIndex] = useState(0);
 
   if (!booking) {
@@ -451,6 +454,13 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
             <Button
               variant="outline"
               className="w-full bg-[#D0D6DB]"
+              onClick={() => setViewReceiptOpen(true)}
+            >
+              <IconReceipt /> View Receipt
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full bg-[#D0D6DB]"
               onClick={handleDownloadPDF}
               disabled={state.isGeneratingPDF}
             >
@@ -475,6 +485,12 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
         onSuccess={() => {
           toast.success("Receipt uploaded successfully!");
         }}
+      />
+      <ViewReceiptDialog
+        open={viewReceiptOpen}
+        onOpenChange={setViewReceiptOpen}
+        booking={booking}
+        invoiceIndex={currentInvoiceIndex}
       />
     </Dialog>
   );
