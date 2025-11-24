@@ -56,6 +56,65 @@ export async function updateAccountProfile(
   }
 }
 
+export async function updateNotificationSetting(input: {
+  channel: string;
+  isEnable: boolean;
+  type: string;
+}): Promise<AccountSettingResponse> {
+  try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("access_token")?.value || "";
+
+    const body = {
+      ...input,
+    };
+
+    console.log({ body });
+
+    const response = await apiCall(`notifications/settings`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update notification setting",
+      };
+    }
+
+    revalidatePath("/settings", "layout");
+
+    return {
+      success: true,
+      message:
+        response.message ||
+        "Notification setting has been successfully updated",
+    };
+  } catch (error) {
+    console.error("Error updating notification setting:", error);
+
+    // Handle API error responses with specific messages
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update notification setting",
+    };
+  }
+}
+
 export async function changePassword(
   input: PasswordChangeSchema,
 ): Promise<AccountSettingResponse> {

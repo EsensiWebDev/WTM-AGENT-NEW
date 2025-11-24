@@ -1,5 +1,6 @@
 import AccountSettingForm from "@/components/settings/account-setting-form";
 import AdditionalSettingsSection from "@/components/settings/additional-settings-section";
+import BookingStatusNotification from "@/components/settings/booking-status-notification";
 import EditProfileForm from "@/components/settings/edit-profile-form";
 import { ProfilePhotoUploader } from "@/components/settings/profile-photo-uploader";
 import { formatUrl } from "@/lib/url-utils";
@@ -51,6 +52,20 @@ const AccountSettingPage = async () => {
             certificateUrl={formatUrl(accountProfile?.certificate)}
             nameCardUrl={formatUrl(accountProfile?.name_card)}
           />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <hr className="my-8" />
+
+      {/* Booking Status Notification Section */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-2">
+          <h2 className="font-medium">Booking Status Notification</h2>
+        </div>
+
+        <div className="col-span-6">
+          <BookingStatusNotification defaultValues={accountProfile} />
         </div>
       </div>
     </div>
