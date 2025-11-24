@@ -10,8 +10,6 @@ export async function cancelBookingAction(
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
 
-  console.log({ subBookingId });
-
   try {
     const response = await apiCall(`bookings/${subBookingId}/cancel`, {
       method: "POST",
