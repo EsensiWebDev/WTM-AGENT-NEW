@@ -69,8 +69,6 @@ export async function updateNotificationSetting(input: {
       ...input,
     };
 
-    console.log({ body });
-
     const response = await apiCall(`notifications/settings`, {
       method: "PUT",
       body: JSON.stringify(body),

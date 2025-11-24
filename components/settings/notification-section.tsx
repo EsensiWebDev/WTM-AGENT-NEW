@@ -34,7 +34,7 @@ const NotificationSection = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">{title}</h3>
+        <h3 className="font-medium">{title}</h3>
         <div className="flex items-center gap-3">
           <Badge
             variant={enabled ? "default" : "secondary"}
