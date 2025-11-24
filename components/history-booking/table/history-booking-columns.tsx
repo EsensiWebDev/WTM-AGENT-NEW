@@ -102,7 +102,7 @@ export function getHistoryBookingTableColumns({
       meta: {
         label: "Booking Status",
         placeholder: "Filter by status...",
-        variant: "multiSelect",
+        variant: "select",
         options: bookingStatusOptions,
       },
       enableColumnFilter: true,
@@ -130,7 +130,7 @@ export function getHistoryBookingTableColumns({
       meta: {
         label: "Payment Status",
         placeholder: "Filter by payment...",
-        variant: "multiSelect",
+        variant: "select",
         options: paymentStatusOptions,
       },
       enableColumnFilter: true,

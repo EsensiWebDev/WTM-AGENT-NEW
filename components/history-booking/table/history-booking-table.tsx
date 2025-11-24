@@ -73,6 +73,7 @@ const HistoryBookingTable = ({ promises }: HistoryBookingTableProps) => {
     shallow: false,
     // clearOnDefault: true,
     startTransition,
+    debounceMs: 500,
   });
 
   const [searchBy, setSearchBy] = useQueryState(
