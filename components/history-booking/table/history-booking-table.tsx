@@ -4,6 +4,7 @@ import { getData } from "@/app/(protected)/history-booking/fetch";
 import { HistoryBooking } from "@/app/(protected)/history-booking/types";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   fetchListPaymentStatus,
 } from "@/server/general";
 import type { DataTableRowAction } from "@/types/data-table";
+import { AlertCircle } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import React, { useTransition } from "react";
 import { UploadReceiptDialog } from "../dialog/upload-receipt-dialog";
@@ -38,15 +40,16 @@ interface HistoryBookingTableProps {
 
 const HistoryBookingTable = ({ promises }: HistoryBookingTableProps) => {
   const [isPending, startTransition] = useTransition();
-  const [{ data, pagination }, bookingStatusOptions, paymentStatusOptions] =
-    React.use(promises);
+  const [
+    { status, data, message, pagination },
+    bookingStatusOptions,
+    paymentStatusOptions,
+  ] = React.use(promises);
   const [rowAction, setRowAction] =
     React.useState<DataTableRowAction<HistoryBooking> | null>(null);
   const [uploadReceiptOpen, setUploadReceiptOpen] = React.useState(false);
   const [selectedBookingForReceipt, setSelectedBookingForReceipt] =
     React.useState<{ bookingId?: string; subBookingId?: string } | null>(null);
-
-  console.log({ data });
 
   const columns = React.useMemo(
     () =>
@@ -78,6 +81,23 @@ const HistoryBookingTable = ({ promises }: HistoryBookingTableProps) => {
       .withDefault("guest_name")
       .withOptions({ shallow: false, clearOnDefault: false }),
   );
+
+  if (status !== 200) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Loading Booking History</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>
+              {message ||
+                "Failed to load booking history. The server returned an error."}
+            </p>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <>
