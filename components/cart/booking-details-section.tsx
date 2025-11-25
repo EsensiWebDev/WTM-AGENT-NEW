@@ -70,6 +70,7 @@ const BookingDetailsSection = ({ cartData }: BookingDetailsSectionProps) => {
         open={showInvoiceDialog}
         onOpenChange={setShowInvoiceDialog}
         booking={bookings as HistoryBooking}
+        viewBtnReceipt={false}
       />
     </div>
   );

@@ -74,14 +74,14 @@ interface ViewInvoiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: HistoryBooking | null;
-  // bookingSummary: BookingSummaryDetail | null;
+  viewBtnReceipt?: boolean;
 }
 
 const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   open,
   onOpenChange,
-  // bookingSummary,
   booking,
+  viewBtnReceipt = true,
 }) => {
   const [state, setState] = useState<InvoiceDialogState>({
     isGeneratingPDF: false,
@@ -96,6 +96,9 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   if (!booking) {
     return null;
   }
+
+  const isReceiptAvailable =
+    booking && booking.receipts && booking.receipts.length > 0;
 
   const allInvoiceData = booking.invoices || [];
   const invoice = allInvoiceData[currentInvoiceIndex];
@@ -451,13 +454,16 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
             >
               <IconCloudUpload /> Upload Payment Receipt
             </Button>
-            <Button
-              variant="outline"
-              className="w-full bg-[#D0D6DB]"
-              onClick={() => setViewReceiptOpen(true)}
-            >
-              <IconReceipt /> View Receipt
-            </Button>
+            {viewBtnReceipt && isReceiptAvailable && (
+              <Button
+                variant="outline"
+                className="w-full bg-[#D0D6DB]"
+                onClick={() => setViewReceiptOpen(true)}
+              >
+                <IconReceipt /> View Receipt
+              </Button>
+            )}
+
             <Button
               variant="outline"
               className="w-full bg-[#D0D6DB]"
