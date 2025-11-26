@@ -498,7 +498,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
         open={viewReceiptOpen}
         onOpenChange={setViewReceiptOpen}
         booking={booking}
-        receipt={invoice.receipt}
+        receipt={invoice?.receipt}
         invoiceIndex={currentInvoiceIndex}
       />
     </Dialog>
