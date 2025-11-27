@@ -19,8 +19,14 @@ export async function POST(req: NextRequest) {
 
   // Forward the refresh token cookie from backend to client
   const refreshToken = res.headers.get("set-cookie");
+  console.log({ refreshToken });
   if (refreshToken) {
-    response.headers.set("set-cookie", refreshToken);
+    // Modify the refresh token Max-Age from 604800 (7 days) to 7200 (2 hours)
+    const modifiedRefreshToken = refreshToken.replace(
+      /Max-Age=\d+/,
+      "Max-Age=7200",
+    );
+    response.headers.set("set-cookie", modifiedRefreshToken);
     response.headers.append(
       "set-cookie",
       `access_token=${data.data.token}; Path=/; Max-Age=7190; HttpOnly`,
