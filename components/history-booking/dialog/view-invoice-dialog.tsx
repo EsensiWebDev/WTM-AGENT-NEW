@@ -24,7 +24,7 @@ import {
   IconRosetteDiscount,
 } from "@tabler/icons-react";
 import { format, isValid } from "date-fns";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { NewInvoiceData } from "./new-invoice-pdf-document";
 import { UploadReceiptDialog } from "./upload-receipt-dialog";
@@ -75,6 +75,7 @@ interface ViewInvoiceDialogProps {
   onOpenChange: (open: boolean) => void;
   booking: HistoryBooking | null;
   viewBtnReceipt?: boolean;
+  invoiceIndex?: number;
 }
 
 const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
@@ -82,6 +83,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   onOpenChange,
   booking,
   viewBtnReceipt = true,
+  invoiceIndex = 0,
 }) => {
   const [state, setState] = useState<InvoiceDialogState>({
     isGeneratingPDF: false,
@@ -91,7 +93,11 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   });
   const [uploadReceiptOpen, setUploadReceiptOpen] = useState(false);
   const [viewReceiptOpen, setViewReceiptOpen] = useState(false);
-  const [currentInvoiceIndex, setCurrentInvoiceIndex] = useState(0);
+  const [currentInvoiceIndex, setCurrentInvoiceIndex] = useState(invoiceIndex);
+
+  useEffect(() => {
+    setCurrentInvoiceIndex(invoiceIndex);
+  }, [invoiceIndex]);
 
   if (!booking) {
     return null;

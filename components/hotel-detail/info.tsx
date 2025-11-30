@@ -1,15 +1,27 @@
 "use client";
 
-import { NearbyPlace } from "@/app/(protected)/hotel/[id]/types";
+import { NearbyPlace, SocialMedia } from "@/app/(protected)/hotel/[id]/types";
 import { Button } from "@/components/ui/button";
+import {
+  IconBrandInstagramFilled,
+  IconBrandTiktokFilled,
+  IconWorld,
+} from "@tabler/icons-react";
 import { ChevronRight, MapPin } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 function generateStars(rating: number) {
   return "★".repeat(rating);
 }
 
-function HotelDescription({ description }: { description: string }) {
+function HotelDescription({
+  description,
+  social_media,
+}: {
+  description: string;
+  social_media: SocialMedia[];
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maxLength = 150;
   const shouldTruncate = description.length > maxLength;
@@ -36,6 +48,35 @@ function HotelDescription({ description }: { description: string }) {
           <ChevronRight size={16} className={isExpanded ? "rotate-90" : ""} />
         </Button>
       )}
+      <div className="flex flex-wrap items-center gap-2">
+        {social_media.map((media, index) => {
+          if (media.platform === "instagram") {
+            return (
+              <Link href={media.link} key={media.platform}>
+                <div className="bg-primary rounded-full p-1">
+                  <IconBrandInstagramFilled className="h-4 w-4 text-white" />
+                </div>
+              </Link>
+            );
+          } else if (media.platform === "tiktok") {
+            return (
+              <Link href={media.link} key={media.platform}>
+                <div className="bg-primary rounded-full p-1">
+                  <IconBrandTiktokFilled className="h-4 w-4 text-white" />
+                </div>
+              </Link>
+            );
+          } else if (media.platform === "website") {
+            return (
+              <Link href={media.link} key={media.platform}>
+                <div className="bg-primary rounded-full p-1">
+                  <IconWorld className="h-4 w-4 text-white" />
+                </div>
+              </Link>
+            );
+          }
+        })}
+      </div>
     </div>
   );
 }
@@ -120,6 +161,7 @@ export function HotelInfo({
   description,
   facilities,
   nearby,
+  social_media,
 }: {
   name: string;
   location: string;
@@ -128,6 +170,7 @@ export function HotelInfo({
   description: string;
   facilities: string[];
   nearby: NearbyPlace[];
+  social_media: SocialMedia[];
 }) {
   return (
     <>
@@ -152,7 +195,10 @@ export function HotelInfo({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-8">
-        <HotelDescription description={description} />
+        <HotelDescription
+          description={description}
+          social_media={social_media}
+        />
         <HotelNearUs locations={nearby} />
         <HotelFacilities facilities={facilities} />
       </div>

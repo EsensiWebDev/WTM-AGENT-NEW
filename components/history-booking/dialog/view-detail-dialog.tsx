@@ -50,6 +50,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
   onOpenChange,
   booking,
 }) => {
+  const [invoiceIndex, setInvoiceIndex] = useState(0);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -62,7 +63,8 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
     string | null
   >(null);
 
-  const handleViewInvoice = (booking: HistoryBooking) => {
+  const handleViewInvoice = (index: number) => {
+    setInvoiceIndex(index);
     setInvoiceDialogOpen(true);
   };
 
@@ -261,7 +263,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
                               <DropdownMenuItem
-                                onSelect={() => handleViewInvoice(booking)}
+                                onSelect={() => handleViewInvoice(index)}
                               >
                                 <IconFileDescription className="mr-2 h-4 w-4" />
                                 View Invoice
@@ -342,6 +344,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
         open={invoiceDialogOpen}
         onOpenChange={setInvoiceDialogOpen}
         booking={booking}
+        invoiceIndex={invoiceIndex}
       />
 
       {/* Receipt Dialog */}

@@ -51,6 +51,7 @@ export function getHistoryBookingTableColumns({
       cell: ({ row }) => row.index + 1,
       enableHiding: false,
       size: 24,
+      enableSorting: false,
     },
     {
       id: "search",
@@ -65,6 +66,7 @@ export function getHistoryBookingTableColumns({
         variant: "text",
       },
       enableColumnFilter: true,
+      enableSorting: false,
     },
     {
       id: "booking_code",
@@ -73,6 +75,7 @@ export function getHistoryBookingTableColumns({
         <DataTableColumnHeader column={column} title="ID Booking" />
       ),
       enableHiding: false,
+      enableSorting: false,
     },
     {
       id: "status_booking_id",
@@ -106,6 +109,7 @@ export function getHistoryBookingTableColumns({
         options: bookingStatusOptions,
       },
       enableColumnFilter: true,
+      enableSorting: false,
     },
     {
       id: "status_payment_id",
@@ -134,6 +138,7 @@ export function getHistoryBookingTableColumns({
         options: paymentStatusOptions,
       },
       enableColumnFilter: true,
+      enableSorting: false,
     },
     {
       id: "actions",

@@ -22,12 +22,14 @@ import {
 import { IconMoon } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Clock, Loader2, Trash2 } from "lucide-react";
+import { Clock, Loader2, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import React, { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import ViewInvoiceDialog from "../history-booking/dialog/view-invoice-dialog";
 import { formatUrl } from "@/lib/url-utils";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface BookingDetailsSectionProps {
   cartData: Awaited<ReturnType<typeof fetchCart>>["data"];
@@ -48,6 +50,12 @@ const BookingDetailsSection = ({ cartData }: BookingDetailsSectionProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Booking Details</h2>
+        <Button size="sm" asChild>
+          <Link href="/home">
+            <Plus className="mr-2 h-4 w-4" />
+            Add More
+          </Link>
+        </Button>
       </div>
       {!cartData.detail && <p>No cart available.</p>}
       {cartData.detail && (

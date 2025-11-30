@@ -16,7 +16,7 @@ export default async function HotelDetailPage({
     <div className="space-y-4 md:space-y-8">
       {/* Gallery Section */}
       <section>
-        <HotelGallery images={hotel.photos || []} />
+        <HotelGallery images={hotel.photos || []} hotelName={hotel.name} />
       </section>
       {/* Info Section */}
       <section>
@@ -28,6 +28,7 @@ export default async function HotelDetailPage({
           description={hotel.description}
           facilities={hotel.facilities}
           nearby={hotel.nearby_place}
+          social_media={hotel.social_media}
         />
       </section>
       {/* Room Card Section */}

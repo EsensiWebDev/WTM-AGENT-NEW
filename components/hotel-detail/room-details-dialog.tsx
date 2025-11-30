@@ -210,7 +210,7 @@ const RoomDetailsDialog: React.FC<RoomDetailsDialogProps> = ({
                 About This Room
               </h3>
               <div className="space-y-2 sm:space-y-3">
-                <p className="text-xs leading-relaxed text-gray-700 sm:text-sm">
+                <p className="text-xs leading-relaxed whitespace-pre-line text-gray-700 sm:text-sm">
                   {room.description}
                 </p>
               </div>
