@@ -1,5 +1,6 @@
 "use client";
 
+import { getBanners } from "@/app/(protected)/home/fetch";
 import {
   Carousel,
   CarouselContent,
@@ -8,49 +9,14 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Image from "next/image";
+import React from "react";
 
-const promoData = [
-  {
-    id: 1,
-    image: "/hotel-detail/WTM Prototype (1).png",
-  },
-  {
-    id: 2,
-    image: "/hotel-detail/WTM Prototype (2).png",
-  },
-  {
-    id: 3,
-    image: "/hotel-detail/WTM Prototype (3).png",
-  },
-  {
-    id: 4,
-    image: "/hotel-detail/WTM Prototype (4).png",
-  },
-  {
-    id: 5,
-    image: "/hotel-detail/WTM Prototype.png",
-  },
-];
-
-export function PromoBanner() {
-  // const { accessToken } = useAuth();
-
-  // const {
-  //   data: dataProfile,
-  //   isLoading: isLoadingProfile,
-  //   isError: isErrorProfile,
-  //   error: errorProfile,
-  // } = useQuery({
-  //   queryKey: ["hotels"],
-  //   queryFn: async (): Promise<ApiResponse<HotelListData>> => {
-  //     return await api("/api/hotels/agent", {
-  //       method: "GET",
-  //       headers: { Authorization: `Bearer ${accessToken}` },
-  //     });
-  //   },
-  //   staleTime: 1000 * 60 * 5, // 5 minutes
-  //   retry: 2,
-  // });
+export function PromoBanner({
+  bannersPromise,
+}: {
+  bannersPromise: Promise<Awaited<ReturnType<typeof getBanners>>>;
+}) {
+  const { data: banners, status, pagination } = React.use(bannersPromise);
 
   return (
     <div className="relative mb-2 w-full sm:mb-4">
@@ -62,15 +28,15 @@ export function PromoBanner() {
         className="w-full"
       >
         <CarouselContent>
-          {promoData.map((promo) => (
-            <CarouselItem key={promo.id} className="md:basis-1/1">
+          {banners.map((banner) => (
+            <CarouselItem key={banner.id} className="md:basis-1/1">
               <div className="relative aspect-[2/1] overflow-hidden rounded sm:aspect-[5/2] md:aspect-[3/1]">
                 <Image
-                  src={promo.image}
+                  src={banner.image_url}
                   alt="Hotel promotional image"
                   fill
                   className="object-cover"
-                  priority={promo.id === 1}
+                  priority
                 />
               </div>
             </CarouselItem>

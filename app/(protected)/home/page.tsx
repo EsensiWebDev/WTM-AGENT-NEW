@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchListProvince } from "@/server/general";
 import React from "react";
-import { getHotels } from "./fetch";
+import { getBanners, getHotels } from "./fetch";
 import { HomePageProps } from "./types";
 
 const HomePage = async (props: HomePageProps) => {
@@ -18,10 +18,18 @@ const HomePage = async (props: HomePageProps) => {
 
   const provincesPromise = fetchListProvince();
 
+  const bannersPromise = getBanners({
+    searchParams,
+  });
+
   return (
     <div className="pb-8 sm:space-y-12 md:space-y-16">
       <div className="relative">
-        <PromoBanner />
+        <React.Suspense
+          fallback={<Skeleton className="h-[300px] w-full sm:h-[400px] md:h-[500px]" />}
+        >
+          <PromoBanner bannersPromise={bannersPromise} />
+        </React.Suspense>
         {/* Mobile: Stack below banner */}
         <div className="px-2 sm:px-4 md:hidden">
           <React.Suspense

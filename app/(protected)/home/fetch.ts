@@ -5,7 +5,7 @@ import { buildQueryParams } from "@/lib/utils";
 import { ApiResponse, SearchParams } from "@/types";
 import { format } from "date-fns";
 import { cookies } from "next/headers";
-import { HotelListData, PromoHomePage } from "./types";
+import { Banner, HotelListData, PromoHomePage } from "./types";
 
 export const getHotels = async ({
   searchParams,
@@ -57,6 +57,24 @@ export const getPromos = async ({
   const queryString = buildQueryParams(searchParams);
   const url = `/promos/agent${queryString ? `?${queryString}` : ""}`;
   const apiResponse = await apiCall<PromoHomePage[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return apiResponse;
+};
+
+export const getBanners = async ({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<ApiResponse<Banner[]>> => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
+  const url = `/banners/active`;
+  const apiResponse = await apiCall<Banner[]>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

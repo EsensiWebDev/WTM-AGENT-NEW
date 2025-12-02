@@ -48,6 +48,13 @@ export interface PromoHomePage {
   name: string;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  image_url: string;
+  description: string;
+}
+
 export interface HomePageProps {
   searchParams: Promise<SearchParams>;
 }
