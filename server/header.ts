@@ -20,8 +20,42 @@ export async function fetchNotifications(): Promise<
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
 
-  const url = `/notifications`;
+  const url = `notifications`;
   const apiResponse = await apiCall<Notification[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return apiResponse;
+}
+
+export async function markNotificationAsRead(input: {
+  notif_id: number;
+}): Promise<ApiResponse<{}>> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
+  const url = `notifications/read`;
+  const apiResponse = await apiCall<{}>(url, {
+    method: "PUT",
+    body: JSON.stringify(input),
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return apiResponse;
+}
+
+export async function markAllNotificationAsRead(): Promise<ApiResponse<{}>> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+
+  const url = `notifications/read`;
+  const apiResponse = await apiCall<{}>(url, {
+    method: "PUT",
+    body: JSON.stringify({ type: "all" }),
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

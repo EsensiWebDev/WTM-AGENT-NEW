@@ -1,7 +1,12 @@
 "use client";
 
-import { fetchNotifications } from "@/server/header";
-import { useQuery } from "@tanstack/react-query";
+import {
+  fetchNotifications,
+  markAllNotificationAsRead,
+  markNotificationAsRead,
+  Notification,
+} from "@/server/header";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "../ui/badge";
@@ -12,6 +17,7 @@ interface NotificationButtonProps {}
 
 export function NotificationButton({}: NotificationButtonProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     data: notificationData,
@@ -28,9 +34,15 @@ export function NotificationButton({}: NotificationButtonProps) {
   const unreadCount =
     notificationData?.data.filter((n) => !n.is_read).length || 0;
 
-  const handleNotificationClick = (redirectUrl: string) => {
-    // Navigate to the redirect URL from the notification
-    router.push(redirectUrl);
+  const handleNotificationClick = async (notification: Notification) => {
+    await markNotificationAsRead({ notif_id: notification.id });
+    queryClient.invalidateQueries({ queryKey: ["notification"] });
+    router.push(notification.redirect_url);
+  };
+
+  const handleMarkAllAsRead = async () => {
+    await markAllNotificationAsRead();
+    queryClient.invalidateQueries({ queryKey: ["notification"] });
   };
 
   return (
@@ -89,9 +101,7 @@ export function NotificationButton({}: NotificationButtonProps) {
               <div
                 key={notification.id}
                 className="flex cursor-pointer items-start gap-3 border-b p-4 transition-colors last:border-b-0 hover:bg-gray-50"
-                onClick={() =>
-                  handleNotificationClick(notification.redirect_url)
-                }
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500">
                   <Bell className="h-4 w-4 text-white" />
@@ -116,8 +126,8 @@ export function NotificationButton({}: NotificationButtonProps) {
         {unreadCount > 0 && !isLoadingNotification && !isErrorNotification && (
           <div className="border-t p-4">
             <Button
+              onClick={handleMarkAllAsRead}
               className="w-full bg-gray-800 text-white hover:bg-gray-700"
-              disabled
             >
               Mark All As Read
             </Button>
