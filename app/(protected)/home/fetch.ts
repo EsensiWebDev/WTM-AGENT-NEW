@@ -20,19 +20,22 @@ export const getHotels = async ({
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const searchParamsWithDefaults = {
+  const searchParamsWithDefaults: SearchParams = {
     ...searchParams,
     limit: searchParams.limit || "9",
     page: searchParams.page || "1",
     from: searchParams.from || format(today, "yyyy-MM-dd"),
     to: searchParams.to || format(tomorrow, "yyyy-MM-dd"),
     total_rooms: searchParams.total_rooms || "1",
-    total_quest:
+    total_guests:
       String(
         Number(searchParams.total_adults || "1") +
           Number(searchParams.total_children || "0"),
       ) || "1",
   };
+
+  delete searchParamsWithDefaults.total_adults;
+  delete searchParamsWithDefaults.total_children;
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
   const url = `/hotels/agent${queryString ? `?${queryString}` : ""}`;
