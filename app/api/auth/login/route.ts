@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const API_BASE_URL =
+  process.env.AUTH_API_BASE_URL ?? "http://54.255.206.242:4816/api";
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const res = await fetch("http://54.255.206.242:4816/api/login", {
+  const res = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
