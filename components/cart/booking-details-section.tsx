@@ -98,6 +98,8 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   const [isSelecting, startSelectTransition] = useTransition();
   const [imageError, setImageError] = useState(false);
 
+  console.log({ bookingDetails, guests });
+
   // Determine if we should show placeholder
   const shouldShowPlaceholder = !bookingDetails.photo || imageError;
 
@@ -302,7 +304,7 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
           <div className="mt-4 flex items-center gap-4">
             <span className="text-sm whitespace-nowrap">Guest Name</span>
             <Select
-              defaultValue={bookingDetails.guest}
+              value={bookingDetails.guest}
               disabled={isSelecting}
               onValueChange={(value) => onSelect(bookingDetails.id, value)}
             >
