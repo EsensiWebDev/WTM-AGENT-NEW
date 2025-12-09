@@ -65,3 +65,6 @@ export function getIcon(iconName: string) {
     ? React.createElement(IconComponent, { className: "h-4 w-4 text-gray-600" })
     : null;
 }
+
+export const isEmptyObject = (obj: Record<string, any>) =>
+  JSON.stringify(obj) === "{}";

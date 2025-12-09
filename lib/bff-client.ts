@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isEmptyObject } from "./utils";
 
 const API_BASE_URL =
   process.env.AUTH_API_BASE_URL ?? "http://54.255.206.242:4816/api";
@@ -40,7 +41,7 @@ export async function bffFetch(
     cache: "no-store",
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && isEmptyObject(init)) {
     redirect("/logout");
   }
 
