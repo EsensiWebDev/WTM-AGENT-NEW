@@ -22,7 +22,7 @@ import z from "zod";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
-  agent_company: z.string().min(1, "Agent company is required").optional(),
+  agent_company: z.string().optional(),
   email: z.string().email("Please enter a valid email").optional(), // Display only field
   phone: z
     .string()
