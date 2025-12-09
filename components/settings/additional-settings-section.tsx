@@ -84,7 +84,8 @@ const ChangeLanguageSelect = ({
     <Select
       value={language}
       onValueChange={handleLanguageChange}
-      disabled={isLanguageLoading}
+      // disabled={isLanguageLoading}
+      disabled={true}
     >
       <SelectTrigger className="mt-2 bg-gray-200">
         <SelectValue placeholder="Select language" />
