@@ -172,10 +172,10 @@ const HotelList = ({ promise }: HotelListProps) => {
 
   return (
     <>
-      {hotels.map((hotel) => (
+      {hotels?.map((hotel) => (
         <HotelCard key={hotel.id} hotel={hotel} />
       ))}
-      {hotels.length === 0 && (
+      {(hotels?.length === 0 || hotels === null) && (
         <div className="col-span-full py-8 text-center">
           <p className="text-muted-foreground">
             No hotels found matching your search.

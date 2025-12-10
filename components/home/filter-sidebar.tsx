@@ -137,10 +137,10 @@ function DistrictCard({
 function PriceRangeCard({ filter_pricing }: { filter_pricing: FilterPricing }) {
   const [{ range_price_min, range_price_max }, setPrices] = useQueryStates({
     range_price_min: parseAsInteger
-      .withDefault(filter_pricing.min_price)
+      .withDefault(filter_pricing ? filter_pricing.min_price : 0)
       .withOptions({ shallow: false }),
     range_price_max: parseAsInteger
-      .withDefault(filter_pricing.max_price)
+      .withDefault(filter_pricing ? filter_pricing.max_price : 0)
       .withOptions({ shallow: false }),
   });
 
@@ -184,13 +184,28 @@ function StarRatingCard({
       .withOptions({ shallow: false }),
   );
 
+  if (!filter_ratings) {
+    return (
+      <Card className="gap-0 rounded p-0 pb-4">
+        <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
+          <h3 className="font-medium">Hotel Classification</h3>
+        </CardHeader>
+        <div className="px-4 py-2">
+          <p className="text-sm text-gray-500">
+            Hotel Classification filter is currently unavailable
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className={"gap-0 rounded p-0 pb-4"}>
       <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
         <h3 className="font-medium">Hotel Classification</h3>
       </CardHeader>
       <div className="space-y-2 px-4">
-        {filter_ratings.map((rating) => (
+        {filter_ratings?.map((rating) => (
           <label key={rating.rating} className="flex items-center gap-2">
             <Checkbox
               checked={star.includes(rating.rating.toString())}
