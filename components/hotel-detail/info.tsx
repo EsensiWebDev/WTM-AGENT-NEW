@@ -35,7 +35,7 @@ function HotelDescription({
       <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">
         Description
       </h2>
-      <p className="text-muted-foreground mb-3 text-xs sm:mb-4 sm:text-sm">
+      <p className="text-muted-foreground mb-3 text-justify text-xs sm:mb-4 sm:text-sm">
         {displayText}
       </p>
       {shouldTruncate && (
