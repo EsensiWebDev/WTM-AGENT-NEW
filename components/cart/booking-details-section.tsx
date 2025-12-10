@@ -98,8 +98,6 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   const [isSelecting, startSelectTransition] = useTransition();
   const [imageError, setImageError] = useState(false);
 
-  console.log({ bookingDetails, guests });
-
   // Determine if we should show placeholder
   const shouldShowPlaceholder = !bookingDetails.photo || imageError;
 
