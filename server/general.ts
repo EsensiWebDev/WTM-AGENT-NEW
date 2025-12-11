@@ -2,6 +2,8 @@
 
 import { apiCall } from "@/lib/api";
 import { cookies } from "next/headers";
+import { Option } from "@/types/data-table";
+import dialCodeData from "@/data/dial_code.json";
 
 export async function fetchListBookingStatus() {
   const cookieStore = await cookies();
@@ -66,3 +68,10 @@ export async function fetchListProvince() {
 
   return [];
 }
+
+export const getCountryPhoneOptions = async (): Promise<Option[]> => {
+  return dialCodeData.map((dial) => ({
+    label: `(${dial.dial_code}) ${dial.name}`,
+    value: dial.dial_code,
+  }));
+};

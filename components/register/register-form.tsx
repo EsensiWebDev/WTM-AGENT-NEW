@@ -3,8 +3,15 @@
 import { registerAction } from "@/app/register/action";
 import { registerSchema, type RegisterSchema } from "@/app/register/type";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import HBText from "@/public/hb_text.png";
@@ -17,13 +24,24 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Card } from "../ui/card";
+import { usePhoneInput } from "@/hooks/use-phone-input";
+import { Option } from "@/types/data-table";
+import { PhoneInput } from "../ui/phone-input";
 
 export function RegisterForm({
+  countryOptions,
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & {
+  countryOptions: Option[];
+}) {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
+
+  const phoneInput = usePhoneInput({
+    initialPhone: "",
+    countryOptions,
+  });
 
   // State for image previews
   const [previews, setPreviews] = React.useState({
@@ -159,276 +177,381 @@ export function RegisterForm({
         />
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left side - 2 columns for form fields */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Full Name - Full Width */}
-              <div className="md:col-span-2">
-                <Label htmlFor="fullName">
-                  Full Name<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Enter your full name"
-                  {...form.register("fullName")}
-                  disabled={isPending}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Left side - 2 columns for form fields */}
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Full Name - Full Width */}
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>
+                        Full Name<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Enter your full name"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.fullName && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.fullName.message}
-                  </p>
-                )}
-              </div>
 
-              {/* Agent Company - Full Width */}
-              <div className="md:col-span-2">
-                <Label htmlFor="agentCompany">Agent Company</Label>
-                <Input
-                  id="agentCompany"
-                  type="text"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Enter your company name"
-                  {...form.register("agentCompany")}
-                  disabled={isPending}
+                {/* Agent Company - Full Width */}
+                <FormField
+                  control={form.control}
+                  name="agentCompany"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Agent Company</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Enter your company name"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              {/* Email, Phone Number */}
-              <div>
-                <Label htmlFor="email">
-                  Email<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="m@example.com"
-                  {...form.register("email")}
-                  disabled={isPending}
+                {/* Email, Phone Number */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>
+                        Email<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="m@example.com"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.email && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
 
-              <div>
-                <Label htmlFor="phoneNumber">
-                  Phone Number<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Enter your phone number"
-                  {...form.register("phoneNumber")}
-                  disabled={isPending}
+                {/* <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Phone Number<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Enter your phone number"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                /> */}
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => {
+                    // Update form value when phone input changes
+                    React.useEffect(() => {
+                      field.onChange(phoneInput.fullPhoneValue);
+                    }, [phoneInput.fullPhoneValue]);
+
+                    return (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-sm font-medium">
+                          Phone Number<span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <PhoneInput
+                            classNameCombobox="rounded bg-gray-200 text-black"
+                            classNameInput="rounded bg-gray-200 text-black"
+                            countryOptions={countryOptions}
+                            selectedCountryCode={phoneInput.selectedCountryCode}
+                            phoneNumber={phoneInput.phoneNumber}
+                            onCountryCodeChange={(code) => {
+                              phoneInput.setSelectedCountryCode(code);
+                            }}
+                            onPhoneNumberChange={(number) => {
+                              phoneInput.setPhoneNumber(number);
+                            }}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
-                {form.formState.errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.phoneNumber.message}
-                  </p>
-                )}
-              </div>
 
-              {/* Username, KakaoTalk ID */}
-              <div>
-                <Label htmlFor="username">
-                  Username<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Choose a username"
-                  {...form.register("username")}
-                  disabled={isPending}
+                {/* Username, KakaoTalk ID */}
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Username<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Choose a username"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.username && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.username.message}
-                  </p>
-                )}
-              </div>
 
-              <div>
-                <Label htmlFor="kakaoTalkId">
-                  KakaoTalk ID<span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="kakaoTalkId"
-                  type="text"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Enter your KakaoTalk ID"
-                  {...form.register("kakaoTalkId")}
-                  disabled={isPending}
+                <FormField
+                  control={form.control}
+                  name="kakaoTalkId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        KakaoTalk ID<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Enter your KakaoTalk ID"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {form.formState.errors.kakaoTalkId && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.kakaoTalkId.message}
-                  </p>
-                )}
-              </div>
 
-              {/* Password - Full Width */}
-              <div className="md:col-span-2">
-                <PasswordInput
-                  id="password"
-                  label="Password *"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Create a password"
-                  {...form.register("password")}
-                  disabled={isPending}
-                  error={form.formState.errors.password?.message}
+                {/* Password - Full Width */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>
+                        Password<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Create a password"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              {/* Confirm Password - Full Width */}
-              <div className="md:col-span-2">
-                <PasswordInput
-                  id="confirmPassword"
-                  label="Confirm Password *"
-                  className="mt-1 rounded bg-gray-200 text-black"
-                  placeholder="Confirm your password"
-                  {...form.register("confirmPassword")}
-                  disabled={isPending}
-                  error={form.formState.errors.confirmPassword?.message}
+                {/* Confirm Password - Full Width */}
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>
+                        Confirm Password<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          className="rounded bg-gray-200 text-black"
+                          placeholder="Confirm your password"
+                          disabled={isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
             </div>
+
+            {/* Right side - 1 column for document uploads */}
+            <div className="space-y-6">
+              <Card className="h-full rounded px-6">
+                <FormField
+                  control={form.control}
+                  name="agentSelfiePhoto"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Agent Selfie Photo
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          {renderThumbnail(
+                            previews.agentSelfiePhoto,
+                            "Agent selfie preview",
+                          )}
+                        </div>
+                        <div className="flex-grow">
+                          <FormControl>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="bg-gray-200 text-black"
+                              onChange={handleFileChange("agentSelfiePhoto")}
+                              disabled={isPending}
+                              {...fieldProps}
+                            />
+                          </FormControl>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="identityCard"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Identity Card<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          {renderThumbnail(
+                            previews.identityCard,
+                            "Identity card preview",
+                          )}
+                        </div>
+                        <div className="flex-grow">
+                          <FormControl>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="bg-gray-200 text-black"
+                              onChange={handleFileChange("identityCard")}
+                              disabled={isPending}
+                              {...fieldProps}
+                            />
+                          </FormControl>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="certificate"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>Certificate</FormLabel>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          {renderThumbnail(
+                            previews.certificate,
+                            "Certificate preview",
+                          )}
+                        </div>
+                        <div className="flex-grow">
+                          <FormControl>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="rounded bg-gray-200 text-black"
+                              onChange={handleFileChange("certificate")}
+                              disabled={isPending}
+                              {...fieldProps}
+                            />
+                          </FormControl>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="nameCard"
+                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Name Card<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          {renderThumbnail(
+                            previews.nameCard,
+                            "Name card preview",
+                          )}
+                        </div>
+                        <div className="flex-grow">
+                          <FormControl>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="rounded bg-gray-200 text-black"
+                              onChange={handleFileChange("nameCard")}
+                              disabled={isPending}
+                              {...fieldProps}
+                            />
+                          </FormControl>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </Card>
+            </div>
           </div>
 
-          {/* Right side - 1 column for document uploads */}
-          <div className="space-y-6">
-            <Card className="h-full rounded px-6">
-              <div>
-                <Label htmlFor="agentSelfiePhoto">
-                  Agent Selfie Photo<span className="text-red-500">*</span>
-                </Label>
-                <div className="mt-1 flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    {renderThumbnail(
-                      previews.agentSelfiePhoto,
-                      "Agent selfie preview",
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <Input
-                      id="agentSelfiePhoto"
-                      type="file"
-                      accept="image/*"
-                      className="bg-gray-200 text-black"
-                      onChange={handleFileChange("agentSelfiePhoto")}
-                      disabled={isPending}
-                    />
-                  </div>
-                </div>
-                {form.formState.errors.agentSelfiePhoto && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.agentSelfiePhoto.message}
-                  </p>
-                )}
-              </div>
+          <div className="space-y-4">
+            <Button type="submit" disabled={isPending} className="rounded">
+              {isPending && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending ? "Creating account..." : "Create Account"}
+            </Button>
 
-              <div>
-                <Label htmlFor="identityCard">
-                  Identity Card<span className="text-red-500">*</span>
-                </Label>
-                <div className="mt-1 flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    {renderThumbnail(
-                      previews.identityCard,
-                      "Identity card preview",
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <Input
-                      id="identityCard"
-                      type="file"
-                      accept="image/*"
-                      className="bg-gray-200 text-black"
-                      onChange={handleFileChange("identityCard")}
-                      disabled={isPending}
-                    />
-                  </div>
-                </div>
-                {form.formState.errors.identityCard && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.identityCard.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="certificate">Certificate</Label>
-                <div className="mt-1 flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    {renderThumbnail(
-                      previews.certificate,
-                      "Certificate preview",
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <Input
-                      id="certificate"
-                      type="file"
-                      accept="image/*"
-                      className="rounded bg-gray-200 text-black"
-                      onChange={handleFileChange("certificate")}
-                      disabled={isPending}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="nameCard">
-                  Name Card<span className="text-red-500">*</span>
-                </Label>
-                <div className="mt-1 flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    {renderThumbnail(previews.nameCard, "Name card preview")}
-                  </div>
-                  <div className="flex-grow">
-                    <Input
-                      id="nameCard"
-                      type="file"
-                      accept="image/*"
-                      className="rounded bg-gray-200 text-black"
-                      onChange={handleFileChange("nameCard")}
-                      disabled={isPending}
-                    />
-                  </div>
-                </div>
-                {form.formState.errors.nameCard && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {form.formState.errors.nameCard.message}
-                  </p>
-                )}
-              </div>
-            </Card>
+            <Link
+              href="/login"
+              className="ml-6 text-sm text-gray-600 hover:underline"
+            >
+              Already have an account?
+            </Link>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <Button type="submit" disabled={isPending} className="rounded">
-            {isPending && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isPending ? "Creating account..." : "Create Account"}
-          </Button>
-
-          <Link
-            href="/login"
-            className="ml-6 text-sm text-gray-600 hover:underline"
-          >
-            Already have an account?
-          </Link>
-        </div>
-      </form>
+        </form>
+      </Form>
     </div>
   );
 }

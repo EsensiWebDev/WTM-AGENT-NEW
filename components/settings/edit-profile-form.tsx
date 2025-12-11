@@ -19,6 +19,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import { Option } from "@/types/data-table";
+import { usePhoneInput } from "@/hooks/use-phone-input";
+import React from "react";
+import { PhoneInput } from "../ui/phone-input";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
@@ -39,9 +43,13 @@ export type ProfileSchema = z.infer<typeof profileSchema>;
 
 interface EditProfileFormProps {
   defaultValues: AccountProfile;
+  countryOptions: Option[];
 }
 
-const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
+const EditProfileForm = ({
+  defaultValues,
+  countryOptions,
+}: EditProfileFormProps) => {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,22 +64,28 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
     },
   });
 
-  function onSubmit(values: ProfileSchema) {
+  const phoneInput = usePhoneInput({
+    initialPhone: defaultValues.phone || "",
+    countryOptions,
+  });
+
+  async function onSubmit(values: ProfileSchema) {
     setIsLoading(true);
-    toast.promise(updateAccountProfile(values), {
-      loading: "Saving profile changes...",
-      success: (data) => {
+    try {
+      const response = await updateAccountProfile(values);
+      if (response.success) {
         queryClient.invalidateQueries({
           queryKey: ["profile"],
         });
-        setIsLoading(false);
-        return data.message || "Profile updated successfully";
-      },
-      error: (error) => {
-        setIsLoading(false);
-        return error.message || "Failed to update profile";
-      },
-    });
+        toast.success(response.message || "Profile updated successfully");
+      } else {
+        toast.error(response.message || "Failed to update profile");
+      }
+    } catch (error) {
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -143,23 +157,40 @@ const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
             <FormField
               control={form.control}
               name="phone"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel className="text-sm font-medium">
-                    Phone Number
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter phone number"
-                      className="bg-gray-200"
-                      disabled
-                      readOnly
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Update form value when phone input changes
+                React.useEffect(() => {
+                  field.onChange(phoneInput.fullPhoneValue);
+                }, [phoneInput.fullPhoneValue]);
+
+                return (
+                  <FormItem className="col-span-2">
+                    <FormLabel className="text-sm font-medium">
+                      Phone Number<span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        disabled
+                        classNameCombobox="rounded bg-gray-200 text-black"
+                        classNameInput="rounded bg-gray-200 text-black"
+                        countryOptions={countryOptions}
+                        selectedCountryCode={phoneInput.selectedCountryCode}
+                        phoneNumber={phoneInput.phoneNumber}
+                        onCountryCodeChange={(code) => {
+                          phoneInput.setSelectedCountryCode(code);
+                        }}
+                        onPhoneNumberChange={(number) => {
+                          phoneInput.setPhoneNumber(number);
+                        }}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}

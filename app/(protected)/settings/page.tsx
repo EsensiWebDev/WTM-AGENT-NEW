@@ -5,8 +5,10 @@ import EditProfileForm from "@/components/settings/edit-profile-form";
 import { ProfilePhotoUploader } from "@/components/settings/profile-photo-uploader";
 import { formatUrl } from "@/lib/url-utils";
 import { fetchAccountProfile } from "./fetch";
+import { getCountryPhoneOptions } from "@/server/general";
 
 const AccountSettingPage = async () => {
+  const countryOptions = await getCountryPhoneOptions();
   const { data: accountProfile } = await fetchAccountProfile();
 
   return (
@@ -44,7 +46,7 @@ const AccountSettingPage = async () => {
         </div>
 
         <div className="col-span-6">
-          <EditProfileForm defaultValues={accountProfile} />
+          <EditProfileForm defaultValues={accountProfile} countryOptions={countryOptions}/>
         </div>
 
         <div className="col-span-4">
