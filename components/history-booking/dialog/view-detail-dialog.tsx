@@ -153,7 +153,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] overflow-hidden bg-white px-4 sm:w-[90vw] sm:px-6 lg:w-[80vw] lg:px-8">
+      <DialogContent className="max-h-[90vh] min-w-[95vw] overflow-hidden bg-white px-4 sm:w-[90vw] sm:px-6 lg:w-[80vw] lg:px-8">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
             Booking Details
