@@ -46,7 +46,10 @@ const AccountSettingPage = async () => {
         </div>
 
         <div className="md:col-span-6">
-          <EditProfileForm defaultValues={accountProfile} countryOptions={countryOptions}/>
+          <EditProfileForm
+            defaultValues={accountProfile}
+            countryOptions={countryOptions}
+          />
         </div>
 
         <div className="md:col-span-4">
