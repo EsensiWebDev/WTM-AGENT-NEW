@@ -155,7 +155,9 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] overflow-hidden bg-white px-4 sm:w-[90vw] sm:px-6 lg:w-[80vw] lg:px-8">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">Booking Details</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            Booking Details
+          </DialogTitle>
         </DialogHeader>
 
         {booking ? (
@@ -201,7 +203,10 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                                 variant="ghost"
                                 className="data-[state=open]:bg-muted -mr-2 size-8 p-0"
                               >
-                                <Ellipsis className="size-4" aria-hidden="true" />
+                                <Ellipsis
+                                  className="size-4"
+                                  aria-hidden="true"
+                                />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48">
@@ -244,31 +249,32 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
 
                         <div className="space-y-2">
                           <div>
-                            <p className="text-xs font-medium uppercase text-gray-500">
+                            <p className="text-xs font-medium text-gray-500 uppercase">
                               Hotel
                             </p>
                             <p className="font-medium capitalize">
                               {detail.hotel_name}
                             </p>
-                            {detail.additional && detail.additional.length > 0 && (
-                              <p className="text-muted-foreground text-sm capitalize">
-                                {detail.additional.join(", ")}
-                              </p>
-                            )}
+                            {detail.additional &&
+                              detail.additional.length > 0 && (
+                                <p className="text-muted-foreground text-sm capitalize">
+                                  {detail.additional.join(", ")}
+                                </p>
+                              )}
                           </div>
 
                           <div>
-                            <p className="text-xs font-medium uppercase text-gray-500">
+                            <p className="text-xs font-medium text-gray-500 uppercase">
                               Sub-booking ID
                             </p>
-                            <p className="break-all text-sm">
+                            <p className="text-sm break-all">
                               {detail.sub_booking_id}
                             </p>
                           </div>
 
                           <div className="flex gap-4">
                             <div className="flex-1">
-                              <p className="text-xs font-medium uppercase text-gray-500">
+                              <p className="text-xs font-medium text-gray-500 uppercase">
                                 Booking Status
                               </p>
                               <Badge
@@ -285,7 +291,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                               </Badge>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-medium uppercase text-gray-500">
+                              <p className="text-xs font-medium text-gray-500 uppercase">
                                 Payment Status
                               </p>
                               <Badge
@@ -317,12 +323,24 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                 <Table className="min-w-full table-fixed">
                   <TableHeader>
                     <TableRow className="!bg-white">
-                      <TableHead className="w-[140px] lg:w-[160px]">Guest Name</TableHead>
-                      <TableHead className="w-[120px] lg:w-[140px]">PIC Agent</TableHead>
-                      <TableHead className="w-[180px] lg:w-[220px]">Hotel Name</TableHead>
-                      <TableHead className="w-[180px] lg:w-[200px]">Sub-booking ID</TableHead>
-                      <TableHead className="w-[120px] lg:w-[140px]">Booking Status</TableHead>
-                      <TableHead className="w-[120px] lg:w-[140px]">Payment Status</TableHead>
+                      <TableHead className="w-[140px] lg:w-[160px]">
+                        Guest Name
+                      </TableHead>
+                      <TableHead className="w-[120px] lg:w-[140px]">
+                        PIC Agent
+                      </TableHead>
+                      <TableHead className="w-[180px] lg:w-[220px]">
+                        Hotel Name
+                      </TableHead>
+                      <TableHead className="w-[180px] lg:w-[200px]">
+                        Sub-booking ID
+                      </TableHead>
+                      <TableHead className="w-[120px] lg:w-[140px]">
+                        Booking Status
+                      </TableHead>
+                      <TableHead className="w-[120px] lg:w-[140px]">
+                        Payment Status
+                      </TableHead>
                       <TableHead className="w-[130px] lg:w-[150px]"></TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
@@ -369,7 +387,9 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="break-all">{detail.sub_booking_id}</TableCell>
+                          <TableCell className="break-all">
+                            {detail.sub_booking_id}
+                          </TableCell>
                           <TableCell className="capitalize">
                             <Badge
                               variant={
@@ -438,8 +458,8 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                                   <DropdownMenuItem
                                     onSelect={() => handleViewReceipt(booking)}
                                   >
-                                    <IconReceipt className="mr-2 h-4 w-4" /> View
-                                    Receipt
+                                    <IconReceipt className="mr-2 h-4 w-4" />{" "}
+                                    View Receipt
                                   </DropdownMenuItem>
                                 ) : (
                                   <DropdownMenuItem
