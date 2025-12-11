@@ -55,13 +55,13 @@ export function DataTableToolbar<TData>({
       )}
       {...props}
     >
-      {reverseOrderChild && (
-        <div className="flex items-center gap-2">
-          {children}
-          {/* <DataTableViewOptions table={table} /> */}
-        </div>
-      )}
       <div className="flex flex-1 flex-wrap items-center gap-2">
+        {reverseOrderChild && (
+          <div className="flex items-center gap-2">
+            {children}
+            {/* <DataTableViewOptions table={table} /> */}
+          </div>
+        )}
         {columns.map((column) => (
           <DataTableToolbarFilter key={column.id} column={column} />
         ))}
@@ -80,14 +80,13 @@ export function DataTableToolbar<TData>({
         {isPending && (
           <Loader className="size-4 animate-spin" aria-hidden="true" />
         )}
+        {!reverseOrderChild && (
+          <div className="flex items-center gap-2">
+            {children}
+            {/* <DataTableViewOptions table={table} /> */}
+          </div>
+        )}
       </div>
-
-      {!reverseOrderChild && (
-        <div className="flex items-center gap-2">
-          {children}
-          {/* <DataTableViewOptions table={table} /> */}
-        </div>
-      )}
     </div>
   );
 }
