@@ -3,7 +3,7 @@
 import { ContactDetail } from "@/app/(protected)/cart/types";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import React from "react";
+import React, { useTransition } from "react";
 import { SelectUserDialog } from "./dialog/select-user-dialog";
 import { ContactDetailsTable } from "./table/contact-details-table";
 import { toast } from "sonner";
@@ -19,17 +19,26 @@ export function ContactDetailsSection({
   cart_id,
 }: ContactDetailsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const openGuestDialog = () => {
     setIsDialogOpen(true);
   };
 
   const handleAddGuest = (guestName: string) => {
-    toast.promise(addGuest({ cart_id: cart_id, guest: guestName }), {
-      loading: "Adding guest...",
-      success: ({ message }) => message || "Guest added successfully!",
-      error: ({ message }) =>
-        message || "Failed to add guest. Please try again.",
+    startTransition(async () => {
+      try {
+        const response = await addGuest({ cart_id: cart_id, guest: guestName });
+        if (response.success) {
+          toast.success(response.message || "Guest added successfully!");
+        } else {
+          toast.error(
+            response.message || "Failed to add guest. Please try again.",
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to add guest. Please try again.");
+      }
     });
   };
 

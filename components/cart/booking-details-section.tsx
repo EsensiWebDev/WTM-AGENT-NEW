@@ -103,29 +103,43 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
 
   const onRemove = async (id: string) => {
     startTransition(async () => {
-      toast.promise(removeFromCart(id), {
-        loading: "Removing room from cart...",
-        success: ({ message }) => {
+      try {
+        const response = await removeFromCart(id);
+        if (response.success) {
           queryClient.invalidateQueries({ queryKey: ["cart"] });
-          return message || "Room removed from cart successfully!";
-        },
-        error: ({ message }) =>
-          message || "Failed to remove room from cart. Please try again.",
-      });
+          toast.success(
+            response.message || "Room removed from cart successfully!",
+          );
+        } else {
+          toast.error(
+            response.message ||
+              "Failed to remove room from cart. Please try again.",
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to remove room from cart. Please try again.");
+      }
     });
   };
 
   const onSelect = async (id: number, guest: string) => {
     startSelectTransition(async () => {
-      toast.promise(selectGuest({ sub_cart_id: Number(id), guest: guest }), {
-        loading: "Selecting guest...",
-        success: ({ message }) => {
+      try {
+        const response = await selectGuest({
+          sub_cart_id: Number(id),
+          guest: guest,
+        });
+        if (response.success) {
           queryClient.invalidateQueries({ queryKey: ["cart"] });
-          return message || "Guest selected successfully!";
-        },
-        error: ({ message }) =>
-          message || "Failed to select guest. Please try again.",
-      });
+          toast.success(response.message || "Guest selected successfully!");
+        } else {
+          toast.error(
+            response.message || "Failed to select guest. Please try again.",
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to select guest. Please try again.");
+      }
     });
   };
 
@@ -373,18 +387,22 @@ const BookingGrandTotalCard = ({
 
   const onCheckOut = async () => {
     startTransition(async () => {
-      toast.promise(checkoutCart(), {
-        loading: "Checking out cart...",
-        success: ({ data, message }) => {
-          if (data) {
-            handleViewInvoice(data);
+      try {
+        const response = await checkoutCart();
+        if (response.success) {
+          if (response.data) {
+            handleViewInvoice(response.data);
           }
           queryClient.invalidateQueries({ queryKey: ["cart"] });
-          return message || "Cart checked out successfully!";
-        },
-        error: ({ message }) =>
-          message || "Failed to check out cart. Please try again.",
-      });
+          toast.success(response.message || "Cart checked out successfully!");
+        } else {
+          toast.error(
+            response.message || "Failed to check out cart. Please try again.",
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to check out cart. Please try again.");
+      }
     });
   };
 

@@ -51,7 +51,6 @@ export function SelectUserDialog({
     onAddGuest(data.name);
     form.reset();
     onOpenChange(false);
-    toast.success(`Guest "${data.name}" added successfully`);
   };
 
   return (
