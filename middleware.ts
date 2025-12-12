@@ -10,9 +10,10 @@ const PUBLIC_PATHS = [
 const AUTHENTICATED_REDIRECT_PATH = "/home";
 
 export function middleware(req: NextRequest) {
-  const refreshToken = req.cookies.get("refresh_token");
+  // const refreshToken = req.cookies.get("refresh_token");
+  const access_token = req.cookies.get("access_token");
   const { pathname } = req.nextUrl;
-  const isAuthenticated = Boolean(refreshToken);
+  const isAuthenticated = Boolean(access_token);
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
 
   if (!isAuthenticated && !isPublicPath) {
