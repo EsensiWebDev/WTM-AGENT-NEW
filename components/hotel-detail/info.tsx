@@ -35,6 +35,11 @@ function HotelDescription({
       <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">
         Description
       </h2>
+      {!description && (
+        <p className="text-muted-foreground text-xs sm:text-sm">
+          No description available.
+        </p>
+      )}
       <p className="text-muted-foreground mb-3 text-justify text-xs sm:mb-4 sm:text-sm">
         {displayText}
       </p>
@@ -49,10 +54,10 @@ function HotelDescription({
         </Button>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        {social_media.map((media, index) => {
+        {social_media?.map((media, index) => {
           if (media.platform === "instagram") {
             return (
-              <Link href={media.link} key={media.platform}>
+              <Link href={media?.link} key={media.platform}>
                 <div className="bg-primary rounded-full p-1">
                   <IconBrandInstagramFilled className="h-4 w-4 text-white" />
                 </div>
@@ -60,7 +65,7 @@ function HotelDescription({
             );
           } else if (media.platform === "tiktok") {
             return (
-              <Link href={media.link} key={media.platform}>
+              <Link href={media?.link} key={media.platform}>
                 <div className="bg-primary rounded-full p-1">
                   <IconBrandTiktokFilled className="h-4 w-4 text-white" />
                 </div>
@@ -68,7 +73,7 @@ function HotelDescription({
             );
           } else if (media.platform === "website") {
             return (
-              <Link href={media.link} key={media.platform}>
+              <Link href={media?.link} key={media.platform}>
                 <div className="bg-primary rounded-full p-1">
                   <IconWorld className="h-4 w-4 text-white" />
                 </div>
@@ -84,7 +89,7 @@ function HotelDescription({
 function HotelNearUs({ locations }: { locations: NearbyPlace[] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maxLocations = 3;
-  const shouldTruncate = locations.length > maxLocations;
+  const shouldTruncate = locations?.length > maxLocations;
   const displayLocations =
     shouldTruncate && !isExpanded
       ? locations.slice(0, maxLocations)
@@ -93,8 +98,13 @@ function HotelNearUs({ locations }: { locations: NearbyPlace[] }) {
   return (
     <div>
       <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">Near Us</h2>
+      {!displayLocations && (
+        <p className="text-muted-foreground text-xs sm:text-sm">
+          No nearby locations available.
+        </p>
+      )}
       <div className="space-y-2 sm:space-y-3">
-        {displayLocations.map((location, index) => (
+        {displayLocations?.map((location, index) => (
           <div key={index} className="flex w-full items-center">
             <MapPin size={14} className="mr-2 sm:mr-2" />
             <span className="text-xs font-medium sm:text-sm">
@@ -123,7 +133,7 @@ function HotelNearUs({ locations }: { locations: NearbyPlace[] }) {
 function HotelFacilities({ facilities }: { facilities: string[] }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maxFacilities = 3;
-  const shouldTruncate = facilities.length > maxFacilities;
+  const shouldTruncate = facilities?.length > maxFacilities;
   const displayFacilities =
     shouldTruncate && !isExpanded
       ? facilities.slice(0, maxFacilities)
@@ -134,8 +144,13 @@ function HotelFacilities({ facilities }: { facilities: string[] }) {
       <h2 className="mb-3 text-base font-bold sm:mb-4 sm:text-lg">
         Main Facilities
       </h2>
+      {!displayFacilities && (
+        <p className="text-muted-foreground text-xs sm:text-sm">
+          No facilities available.
+        </p>
+      )}
       <ul className="text-muted-foreground mb-3 list-disc space-y-1 pl-5 text-xs sm:mb-4 sm:space-y-2 sm:text-sm">
-        {displayFacilities.map((facility, index) => (
+        {displayFacilities?.map((facility, index) => (
           <li key={index}>{facility}</li>
         ))}
       </ul>
