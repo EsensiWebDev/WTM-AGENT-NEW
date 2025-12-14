@@ -26,9 +26,14 @@ export function ContactDetailsTable({
   const handleRemoveGuest = (contactDetail: ContactDetail) => {
     startTransition(async () => {
       try {
+        // Reconstruct full name with honorific for API
+        const fullName = contactDetail.honorific
+          ? `${contactDetail.honorific} ${contactDetail.name}`
+          : contactDetail.name;
+
         const response = await removeGuest({
           cart_id: cart_id,
-          guest: contactDetail.name,
+          guest: fullName,
         });
         if (response.success) {
           toast.success(response.message || "Guest removed successfully!");

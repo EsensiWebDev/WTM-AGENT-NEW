@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { InvoiceData } from "../history-booking/types";
 import { getContactDetails, saveContactDetails } from "./fetch";
+import { GuestPayload } from "./types";
 
 export async function addUserAsGuest(user: User) {
   // Simulate API call delay
@@ -163,12 +164,48 @@ export async function checkoutCart(): Promise<ActionResponse<InvoiceData[]>> {
   }
 }
 
-export const addGuest = async (input: { cart_id: number; guest: string }) => {
+export const addGuest = async (input: { 
+  cart_id: number; 
+  guest?: string; // For backward compatibility (legacy)
+  guests?: string[]; // For backward compatibility (legacy)
+  guestData?: GuestPayload[]; // New structured format
+}) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
+  
+  // Determine which format to use and convert to structured format
+  let guests: GuestPayload[];
+  
+  if (input.guestData) {
+    // New structured format
+    guests = input.guestData;
+  } else {
+    // Legacy format: convert string array to structured format for backward compatibility
+    const legacyGuests = input.guests || (input.guest ? [input.guest] : []);
+    guests = legacyGuests.map((guestName) => {
+      // Parse legacy format "Mr John Doe" or just "John Doe"
+      const honorifics = ["Mr", "Mrs", "Miss"];
+      const parts = guestName.trim().split(" ");
+      
+      if (parts.length > 1 && honorifics.includes(parts[0])) {
+        return {
+          name: parts.slice(1).join(" "),
+          honorific: parts[0] as "Mr" | "Mrs" | "Miss",
+          category: "Adult" as const, // Default to Adult for legacy data
+        };
+      }
+      
+      return {
+        name: guestName,
+        honorific: "Mr" as const, // Default honorific
+        category: "Adult" as const, // Default to Adult for legacy data
+      };
+    });
+  }
+  
   const body = {
     cart_id: input.cart_id,
-    guests: [input.guest],
+    guests: guests,
   };
 
   try {
@@ -183,15 +220,17 @@ export const addGuest = async (input: { cart_id: number; guest: string }) => {
     if (response.status !== 200) {
       return {
         success: false,
-        message: response.message || "Failed to add guest",
+        message: response.message || "Failed to add guest(s)",
       };
     }
 
     revalidatePath("/cart", "layout");
 
+    const guestCount = Array.isArray(guests) ? guests.length : 0;
     return {
       success: true,
-      message: response.message || "Guest has been successfully added",
+      message: response.message || 
+        `${guestCount} guest${guestCount > 1 ? "s have" : " has"} been successfully added`,
     };
   } catch (error) {
     console.error("Error adding guest:", error);
@@ -206,7 +245,7 @@ export const addGuest = async (input: { cart_id: number; guest: string }) => {
 
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to add guest",
+      message: error instanceof Error ? error.message : "Failed to add guest(s)",
     };
   }
 };

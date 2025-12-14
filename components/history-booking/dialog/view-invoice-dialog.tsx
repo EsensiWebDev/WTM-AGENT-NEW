@@ -338,47 +338,67 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
           <div className="mt-4 sm:mt-6 md:mt-8">
             {/* Mobile Card View */}
             <div className="block space-y-3 md:hidden">
-              {newInvoiceData.items.map((item, index) => (
-                <div key={index} className="rounded-lg border bg-white p-3">
-                  <div className="mb-2 flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold text-gray-900">
-                        {index + 1}. {item.description}
-                      </p>
+              {newInvoiceData.items.map((item, index) => {
+                // Determine if this is a room booking (unit is "night") or additional service
+                const isRoom = item.unit === "night";
+                const isAdditionalService = !isRoom;
+                
+                // Fix unit display: if category is "price" and unit is "pax", show "item" instead
+                const displayUnit = 
+                  item.category === "price" && item.unit === "pax"
+                    ? "item"
+                    : item.category === "pax"
+                      ? "pax"
+                      : !isRoom && item.unit === "pax" && item.price > 0
+                        ? "item"
+                        : item.unit;
+                
+                return (
+                  <div key={index} className="rounded-lg border bg-white p-3">
+                    <div className="mb-2 flex items-start justify-between">
+                      <div className="flex-1">
+                        <p 
+                          className={`text-xs font-semibold text-gray-900 ${
+                            isAdditionalService ? "pl-3" : ""
+                          }`}
+                        >
+                          {index + 1}. {item.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Quantity:</span>
-                      <span className="font-medium">
-                        {item.quantity} {item.unit}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Unit Price:</span>
-                      <span className="font-medium">
-                        {formatCurrency(item.price, "IDR")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t pt-1.5">
-                      <span className="font-semibold text-gray-900">
-                        Total:
-                      </span>
-                      <div className="flex flex-col items-end gap-0.5">
-                        {newInvoiceData.promo?.promo_code &&
-                          item.total_before_promo > item.total && (
-                            <span className="text-xs text-gray-500 line-through">
-                              {formatCurrency(item.total_before_promo, "IDR")}
-                            </span>
-                          )}
-                        <span className="font-semibold text-gray-900">
-                          {formatCurrency(item.total, "IDR")}
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Quantity:</span>
+                        <span className="font-medium">
+                          {item.quantity} {displayUnit}
                         </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Unit Price:</span>
+                        <span className="font-medium">
+                          {formatCurrency(item.price, "IDR")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t pt-1.5">
+                        <span className="font-semibold text-gray-900">
+                          Total:
+                        </span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          {newInvoiceData.promo?.promo_code &&
+                            item.total_before_promo > item.total && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatCurrency(item.total_before_promo, "IDR")}
+                              </span>
+                            )}
+                          <span className="font-semibold text-gray-900">
+                            {formatCurrency(item.total, "IDR")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Desktop Table View */}
@@ -407,37 +427,58 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {newInvoiceData.items.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-3 py-2.5 text-xs lg:px-4 lg:py-3 lg:text-sm">
-                        {index + 1}.
-                      </td>
-                      <td className="px-3 py-2.5 text-xs lg:px-4 lg:py-3 lg:text-sm">
-                        {item.description}
-                      </td>
-                      <td className="px-3 py-2.5 text-center text-xs lg:px-4 lg:py-3 lg:text-sm">
-                        {item.quantity}
-                      </td>
-                      <td className="px-3 py-2.5 text-center text-xs lg:px-4 lg:py-3 lg:text-sm">
-                        {item.unit}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-xs lg:px-4 lg:py-3 lg:text-sm">
-                        {formatCurrency(item.price, "IDR")}
-                      </td>
-                      <td className="px-3 py-2.5 text-right text-xs font-medium lg:px-4 lg:py-3 lg:text-sm">
-                        <div className="flex flex-col items-end gap-1">
-                          {/* Conditionally show strikethrough price when promo is applied to this item */}
-                          {newInvoiceData.promo?.promo_code &&
-                            item.total_before_promo > item.total && (
-                              <span className="text-xs text-gray-500 line-through">
-                                {formatCurrency(item.total_before_promo, "IDR")}
-                              </span>
-                            )}
-                          <span>{formatCurrency(item.total, "IDR")}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {newInvoiceData.items.map((item, index) => {
+                    // Determine if this is a room booking (unit is "night") or additional service
+                    const isRoom = item.unit === "night";
+                    const isAdditionalService = !isRoom;
+                    
+                    // Fix unit display: if category is "price" and unit is "pax", show "item" instead
+                    // If category is not provided, infer: if unit is "pax" and it's an additional service with price > 0, it's likely "price" category
+                    const displayUnit = 
+                      item.category === "price" && item.unit === "pax"
+                        ? "item"
+                        : item.category === "pax"
+                          ? "pax"
+                          : !isRoom && item.unit === "pax" && item.price > 0
+                            ? "item"
+                            : item.unit;
+                    
+                    return (
+                      <tr key={index}>
+                        <td className="px-3 py-2.5 text-xs lg:px-4 lg:py-3 lg:text-sm">
+                          {index + 1}.
+                        </td>
+                        <td 
+                          className={`px-3 py-2.5 text-xs lg:px-4 lg:py-3 lg:text-sm ${
+                            isAdditionalService ? "pl-6 lg:pl-8" : ""
+                          }`}
+                        >
+                          {item.description}
+                        </td>
+                        <td className="px-3 py-2.5 text-center text-xs lg:px-4 lg:py-3 lg:text-sm">
+                          {item.quantity}
+                        </td>
+                        <td className="px-3 py-2.5 text-center text-xs lg:px-4 lg:py-3 lg:text-sm">
+                          {displayUnit}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-xs lg:px-4 lg:py-3 lg:text-sm">
+                          {formatCurrency(item.price, "IDR")}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-xs font-medium lg:px-4 lg:py-3 lg:text-sm">
+                          <div className="flex flex-col items-end gap-1">
+                            {/* Conditionally show strikethrough price when promo is applied to this item */}
+                            {newInvoiceData.promo?.promo_code &&
+                              item.total_before_promo > item.total && (
+                                <span className="text-xs text-gray-500 line-through">
+                                  {formatCurrency(item.total_before_promo, "IDR")}
+                                </span>
+                              )}
+                            <span>{formatCurrency(item.total, "IDR")}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

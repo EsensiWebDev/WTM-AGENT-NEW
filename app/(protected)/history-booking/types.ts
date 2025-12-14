@@ -7,6 +7,8 @@ export interface InvoiceLineItemData {
   price: number;
   total: number;
   total_before_promo: number;
+  category?: "price" | "pax"; // Optional category for additional services
+  is_additional_service?: boolean; // Flag to identify additional services
 }
 
 export interface PromoData {

@@ -9,12 +9,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Spinner } from "../ui/spinner";
 import { AdditionalServices } from "./additional-services";
+import { BedTypeSelection } from "./bed-type-selection";
 import { PromoSelection } from "./promo-selection";
 import RoomDetailsDialog from "./room-details-dialog";
 import { RoomFeatures } from "./room-features";
@@ -28,6 +29,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
   const [roomQuantity, setRoomQuantity] = useState(1);
   const [selectedAdditionals, setSelectedAdditionals] = useState<string[]>([]);
   const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
+  const [selectedBedType, setSelectedBedType] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -40,12 +42,50 @@ export default function RoomCard({ room }: { room: RoomType }) {
   // Generate unique radio group name for this room type
   const radioGroupName = `room-option-${room.name.toLowerCase().replace(/\s+/g, "-")}`;
 
+  // Auto-select required additional services on mount
+  useEffect(() => {
+    if (room.additional && room.additional.length > 0) {
+      const requiredServiceIds = room.additional
+        .filter((service) => service.is_required)
+        .map((service) => String(service.id));
+      
+      if (requiredServiceIds.length > 0) {
+        setSelectedAdditionals((prev) => {
+          // Merge with existing selections, avoiding duplicates
+          const merged = [...new Set([...prev, ...requiredServiceIds])];
+          return merged;
+        });
+      }
+    }
+  }, [room.additional]);
+
+  // Auto-select bed type if only one option available
+  useEffect(() => {
+    if (room.bed_types && room.bed_types.length === 1 && !selectedBedType) {
+      setSelectedBedType(room.bed_types[0]);
+    }
+  }, [room.bed_types, selectedBedType]);
+
   // Function to reset form to default values
   const resetForm = () => {
     setSelectedRoom(0);
     setRoomQuantity(1);
-    setSelectedAdditionals([]);
+    // Keep required services selected even after reset
+    if (room.additional && room.additional.length > 0) {
+      const requiredServiceIds = room.additional
+        .filter((service) => service.is_required)
+        .map((service) => String(service.id));
+      setSelectedAdditionals(requiredServiceIds);
+    } else {
+      setSelectedAdditionals([]);
+    }
     setSelectedPromo(null);
+    // Reset bed type, but auto-select if only one option
+    if (room.bed_types && room.bed_types.length === 1) {
+      setSelectedBedType(room.bed_types[0]);
+    } else {
+      setSelectedBedType("");
+    }
   };
 
   const handleAdditionalChange = (serviceId: string, checked: boolean) => {
@@ -70,6 +110,12 @@ export default function RoomCard({ room }: { room: RoomType }) {
       return;
     }
 
+    // Validate bed type selection if multiple bed types exist
+    if (room.bed_types && room.bed_types.length > 1 && !selectedBedType) {
+      toast.error("Please select a bed type.");
+      return;
+    }
+
     const body = {
       check_in_date: from,
       check_out_date: to,
@@ -77,6 +123,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
       quantity: roomQuantity,
       room_price_id: selectedRoom,
       room_type_additional_ids: selectedAdditionals.map((id) => Number(id)),
+      bed_type: selectedBedType || room.bed_types?.[0] || undefined,
     } as AddToCartRequest;
 
     startTransition(async () => {
@@ -107,7 +154,6 @@ export default function RoomCard({ room }: { room: RoomType }) {
       icon: room.is_smoking_room ? "CigaretteOff" : "Cigarette",
       text: room.is_smoking_room ? "Non Smoking" : "Smoking",
     },
-    { icon: "Bed", text: `${room.bed_types?.join(", ")}` },
   ];
 
   return (
@@ -146,6 +192,15 @@ export default function RoomCard({ room }: { room: RoomType }) {
                 additionals={room.additional}
                 selectedAdditionals={selectedAdditionals}
                 onAdditionalChange={handleAdditionalChange}
+              />
+            )}
+
+            {room.bed_types && room.bed_types.length > 0 && (
+              <BedTypeSelection
+                bedTypes={room.bed_types}
+                selectedBedType={selectedBedType}
+                onSelect={setSelectedBedType}
+                required={room.bed_types.length > 1}
               />
             )}
 

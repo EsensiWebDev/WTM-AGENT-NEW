@@ -45,6 +45,8 @@ export interface NewInvoiceData {
     price: number;
     total: number;
     total_before_promo: number;
+    category?: "price" | "pax"; // Optional category for additional services
+    is_additional_service?: boolean; // Flag to identify additional services
   }>;
   totalPrice: number;
   totalBeforePromo: number;
@@ -258,97 +260,115 @@ export const NewInvoicePDFDocument: React.FC<{
         </View>
 
         {/* Table Rows */}
-        {invoice.items.map((item, index) => (
-          <View
-            key={index}
-            style={{
-              flexDirection: "row",
-              borderBottomWidth: index < invoice.items.length - 1 ? 1 : 0,
-              borderBottomColor: "#e5e7eb",
-            }}
-          >
+        {invoice.items.map((item, index) => {
+          // Determine if this is a room booking (unit is "night") or additional service
+          const isRoom = item.unit === "night";
+          const isAdditionalService = !isRoom;
+          
+          // Fix unit display: if category is "price" and unit is "pax", show "item" instead
+          // If category is not provided, infer: if unit is "pax" and it's an additional service with price > 0, it's likely "price" category
+          const displayUnit = 
+            item.category === "price" && item.unit === "pax"
+              ? "item"
+              : item.category === "pax"
+                ? "pax"
+                : !isRoom && item.unit === "pax" && item.price > 0
+                  ? "item"
+                  : item.unit;
+          
+          return (
             <View
+              key={index}
               style={{
-                width: "8%",
-                padding: 8,
-                borderRightWidth: 1,
-                borderRightColor: "#e5e7eb",
+                flexDirection: "row",
+                borderBottomWidth: index < invoice.items.length - 1 ? 1 : 0,
+                borderBottomColor: "#e5e7eb",
               }}
             >
-              <Text style={{ fontSize: 10 }}>{index + 1}.</Text>
-            </View>
-            <View
-              style={{
-                width: "36%",
-                padding: 8,
-                borderRightWidth: 1,
-                borderRightColor: "#e5e7eb",
-              }}
-            >
-              <Text style={{ fontSize: 10 }}>{item.description}</Text>
-            </View>
-            <View
-              style={{
-                width: "12%",
-                padding: 8,
-                borderRightWidth: 1,
-                borderRightColor: "#e5e7eb",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 10 }}>{item.quantity}</Text>
-            </View>
-            <View
-              style={{
-                width: "12%",
-                padding: 8,
-                borderRightWidth: 1,
-                borderRightColor: "#e5e7eb",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontSize: 10 }}>{item.unit}</Text>
-            </View>
-            <View
-              style={{
-                width: "16%",
-                padding: 8,
-                borderRightWidth: 1,
-                borderRightColor: "#e5e7eb",
-                alignItems: "flex-end",
-              }}
-            >
-              <Text style={{ fontSize: 10 }}>
-                {formatCurrency(item.price, "IDR")}
-              </Text>
-            </View>
-            <View style={{ width: "16%", padding: 8, alignItems: "flex-end" }}>
-              {/* Conditionally show strikethrough price when promo is applied to this item */}
-              {invoice.promo?.promo_code &&
-              item.total_before_promo > item.total ? (
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text
-                    style={{
-                      fontSize: 8,
-                      color: "#666",
-                      textDecoration: "line-through",
-                      marginBottom: 2,
-                    }}
-                  >
-                    {formatCurrency(item.total_before_promo, "IDR")}
-                  </Text>
+              <View
+                style={{
+                  width: "8%",
+                  padding: 8,
+                  borderRightWidth: 1,
+                  borderRightColor: "#e5e7eb",
+                }}
+              >
+                <Text style={{ fontSize: 10 }}>{index + 1}.</Text>
+              </View>
+              <View
+                style={{
+                  width: "36%",
+                  padding: 8,
+                  paddingLeft: isAdditionalService ? 20 : 8,
+                  borderRightWidth: 1,
+                  borderRightColor: "#e5e7eb",
+                }}
+              >
+                <Text style={{ fontSize: 10 }}>{item.description}</Text>
+              </View>
+              <View
+                style={{
+                  width: "12%",
+                  padding: 8,
+                  borderRightWidth: 1,
+                  borderRightColor: "#e5e7eb",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 10 }}>{item.quantity}</Text>
+              </View>
+              <View
+                style={{
+                  width: "12%",
+                  padding: 8,
+                  borderRightWidth: 1,
+                  borderRightColor: "#e5e7eb",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 10 }}>{displayUnit}</Text>
+              </View>
+              <View
+                style={{
+                  width: "16%",
+                  padding: 8,
+                  borderRightWidth: 1,
+                  borderRightColor: "#e5e7eb",
+                  alignItems: "flex-end",
+                }}
+              >
+                <Text style={{ fontSize: 10 }}>
+                  {formatCurrency(item.price, "IDR")}
+                </Text>
+              </View>
+              <View style={{ width: "16%", padding: 8, alignItems: "flex-end" }}>
+                {/* Conditionally show strikethrough price when promo is applied to this item */}
+                {invoice.promo?.promo_code &&
+                item.total_before_promo > item.total ? (
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text
+                      style={{
+                        fontSize: 8,
+                        color: "#666",
+                        textDecoration: "line-through",
+                        marginBottom: 2,
+                      }}
+                    >
+                      {formatCurrency(item.total_before_promo, "IDR")}
+                    </Text>
+                    <Text style={{ fontSize: 10, fontWeight: "bold" }}>
+                      {formatCurrency(item.total, "IDR")}
+                    </Text>
+                  </View>
+                ) : (
                   <Text style={{ fontSize: 10, fontWeight: "bold" }}>
                     {formatCurrency(item.total, "IDR")}
                   </Text>
-                </View>
-              ) : (
-                <Text style={{ fontSize: 10, fontWeight: "bold" }}>
-                  {formatCurrency(item.total, "IDR")}
-                </Text>
-              )}
+                )}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
       {/* Total Section */}

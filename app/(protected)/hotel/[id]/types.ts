@@ -49,10 +49,15 @@ export interface PriceOption {
   is_show: boolean;
 }
 
+export type AdditionalServiceCategory = "price" | "pax";
+
 export interface AdditionalService {
   id: number;
   name: string;
-  price: number;
+  category: AdditionalServiceCategory;
+  price?: number; // Only set when category="price"
+  pax?: number; // Only set when category="pax"
+  is_required: boolean;
 }
 
 export interface Promo {

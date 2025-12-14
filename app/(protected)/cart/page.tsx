@@ -10,6 +10,7 @@ const CartPage = async () => {
   // Fetch booking details only since guest data is now handled by context
   const { data: cartData } = await fetchCart();
   const guests = cartData?.guest;
+  const hasBookings = cartData?.detail && Array.isArray(cartData.detail) && cartData.detail.length > 0;
 
   return (
     <GuestProvider>
@@ -27,7 +28,11 @@ const CartPage = async () => {
               </Card>
             }
           >
-            <ContactDetailsSection guests={guests} cart_id={cartData.id} />
+            <ContactDetailsSection 
+              guests={guests} 
+              cart_id={cartData?.id || 0} 
+              hasBookings={hasBookings}
+            />
           </React.Suspense>
           <React.Suspense
             fallback={

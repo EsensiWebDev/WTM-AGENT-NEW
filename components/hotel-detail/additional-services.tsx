@@ -23,6 +23,12 @@ export function AdditionalServices({
         {additionals.map((service) => {
           const serviceId = String(service.id);
           const isSelected = selectedAdditionals.includes(serviceId);
+          
+          // Backward compatibility: default to "price" if category is missing
+          const category = service.category || "price";
+          
+          // Determine if service is required (backward compatibility: default to false)
+          const isRequired = service.is_required ?? false;
 
           return (
             <div
@@ -31,7 +37,8 @@ export function AdditionalServices({
             >
               <Checkbox
                 id={serviceId}
-                checked={isSelected}
+                checked={isSelected || isRequired}
+                disabled={isRequired}
                 onCheckedChange={(checked) =>
                   onAdditionalChange(serviceId, Boolean(checked))
                 }
@@ -41,10 +48,18 @@ export function AdditionalServices({
                 className="text-xs font-medium text-gray-900 sm:text-sm"
               >
                 {service.name}
+                {isRequired && (
+                  <span className="ml-1 text-xs text-red-500">*</span>
+                )}
               </label>
-              {service.price > 0 && (
+              {category === "price" && service.price !== undefined && service.price > 0 && (
                 <span className="text-xs text-gray-600 sm:text-sm">
                   Rp {service.price.toLocaleString("id-ID")}
+                </span>
+              )}
+              {category === "pax" && service.pax !== undefined && service.pax > 0 && (
+                <span className="text-xs text-gray-600 sm:text-sm">
+                  {service.pax} {service.pax === 1 ? "person" : "people"}
                 </span>
               )}
             </div>

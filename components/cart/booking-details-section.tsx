@@ -284,6 +284,11 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
             <div className="leading-tight">
               <div className="text-sm leading-tight font-medium">
                 {bookingDetails.room_type_name}
+                {bookingDetails.bed_type && (
+                  <span className="ml-2 text-xs font-normal text-gray-600">
+                    ({bookingDetails.bed_type})
+                  </span>
+                )}
               </div>
               <div className="text-xs leading-tight font-extralight">
                 {bookingDetails.is_breakfast ? "Breakfast Included" : ""}
@@ -298,20 +303,34 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
           </div>
 
           {/* Additional Services */}
-          {bookingDetails.additional?.map((additional, idx) => (
-            <React.Fragment
-              key={`${bookingDetails.room_type_name}-additional-${idx}`}
-            >
-              <div className="col-span-1 md:col-span-2">
-                <span className="text-sm font-medium">{additional.name}</span>
-              </div>
-              <div className="flex text-sm md:flex-col md:justify-center">
-                <span className="text-right text-sm font-medium">
-                  {formatPrice(additional.price)}
-                </span>
-              </div>
-            </React.Fragment>
-          ))}
+          {bookingDetails.additional?.map((additional, idx) => {
+            // Backward compatibility: default to "price" if category is missing
+            const category = additional.category || "price";
+            
+            return (
+              <React.Fragment
+                key={`${bookingDetails.room_type_name}-additional-${idx}`}
+              >
+                <div className="col-span-1 md:col-span-2">
+                  <span className="text-sm font-medium">
+                    {additional.name}
+                    {additional.is_required && (
+                      <span className="ml-1 text-xs text-red-500">*</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex text-sm md:flex-col md:justify-center">
+                  <span className="text-right text-sm font-medium">
+                    {category === "price" && additional.price !== undefined
+                      ? formatPrice(additional.price)
+                      : category === "pax" && additional.pax !== undefined
+                        ? `${additional.pax} ${additional.pax === 1 ? "person" : "people"}`
+                        : formatPrice(0)}
+                  </span>
+                </div>
+              </React.Fragment>
+            );
+          })}
 
           <div className="mt-4 flex items-center gap-4">
             <span className="text-sm whitespace-nowrap">Guest Name</span>
@@ -430,6 +449,7 @@ const BookingGrandTotalCard = ({
                   </div>
                   <div className="text-xs leading-tight font-extralight">
                     {detail.room_type_name}
+                    {detail.bed_type && ` - ${detail.bed_type}`}
                     {detail.additional?.length > 0 &&
                       ` + ${detail.additional.map((s) => s.name).join(" + ")}`}
                   </div>

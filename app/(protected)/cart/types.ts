@@ -4,9 +4,13 @@ export type Cart = {
       additional: [
         {
           name: string;
-          price: number;
+          category?: "price" | "pax"; // Optional for backward compatibility
+          price?: number; // Optional - only when category="price"
+          pax?: number; // Optional - only when category="pax"
+          is_required?: boolean; // Optional for backward compatibility
         },
       ];
+      bed_type?: string; // Selected bed type name
       check_in_date: string;
       check_out_date: string;
       guest: string;
@@ -35,10 +39,23 @@ export type Cart = {
   id: number;
 };
 
+export type GuestHonorific = "Mr" | "Mrs" | "Miss";
+export type GuestCategory = "Adult" | "Child";
+
+export interface GuestPayload {
+  name: string;
+  honorific: GuestHonorific;
+  category: GuestCategory;
+  age?: number; // Required when category is "Child"
+}
+
 export interface ContactDetail {
   id: string;
   no: number;
   name: string;
+  honorific?: GuestHonorific;
+  category?: GuestCategory;
+  age?: number; // Only when category is "Child"
 }
 
 export interface ContactDetailsTableProps {
@@ -72,8 +89,13 @@ export interface RoomDetail {
   features: string[];
 }
 
+export type AdditionalServiceCategory = "price" | "pax";
+
 export interface AdditionalService {
   id: string;
   name: string;
-  price: number;
+  category: AdditionalServiceCategory;
+  price?: number; // Only set when category="price"
+  pax?: number; // Only set when category="pax"
+  is_required: boolean;
 }
