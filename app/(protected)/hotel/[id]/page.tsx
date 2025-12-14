@@ -10,7 +10,15 @@ export default async function HotelDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { data: hotel } = await fetchHotelDetail({ hotel_id: id });
+  const {
+    data: hotel,
+    status,
+    message,
+  } = await fetchHotelDetail({ hotel_id: id });
+
+  if (status !== 200) {
+    return <div>{message || "Failed to get hotel detail"}</div>;
+  }
 
   return (
     <div className="space-y-4 md:space-y-8">
@@ -24,7 +32,7 @@ export default async function HotelDetailPage({
           name={hotel.name}
           location={`${hotel.sub_district}, ${hotel.city} - ${hotel.province}`}
           rating={hotel.rating}
-          price={hotel.room_type[0].without_breakfast.price}
+          price={hotel.room_type?.[0].without_breakfast.price || 0}
           description={hotel.description}
           facilities={hotel.facilities}
           nearby={hotel.nearby_place}
@@ -34,7 +42,7 @@ export default async function HotelDetailPage({
       {/* Room Card Section */}
       <section className="space-y-8">
         <Suspense fallback={<div>Loading room options...</div>}>
-          {hotel.room_type.map((room, i) => (
+          {hotel.room_type?.map((room, i) => (
             <div key={i}>
               <RoomCard room={room} />
             </div>
