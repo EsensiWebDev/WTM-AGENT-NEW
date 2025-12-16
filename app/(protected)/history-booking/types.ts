@@ -7,6 +7,7 @@ export interface InvoiceLineItemData {
   price: number;
   total: number;
   total_before_promo: number;
+  category?: string;
 }
 
 export interface PromoData {
@@ -36,6 +37,7 @@ export interface InvoiceData {
   invoice_number: string;
   invoice_date: string;
   receipt: string;
+  bed_type?: string;
 }
 
 export interface SubBookingDetail {

@@ -37,9 +37,15 @@ export interface RoomType {
   bed_types: string[];
   is_smoking_room: boolean;
   additional: AdditionalService[];
+  other_preferences?: OtherPreference[];
   description: string;
   promos: Promo[];
   photos: string[];
+}
+
+export interface OtherPreference {
+  id: number;
+  name: string;
 }
 
 export interface PriceOption {
@@ -53,6 +59,9 @@ export interface AdditionalService {
   id: number;
   name: string;
   price: number;
+  category?: "price" | "pax";
+  pax?: number;
+  is_required?: boolean;
 }
 
 export interface Promo {

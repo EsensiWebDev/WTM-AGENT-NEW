@@ -265,10 +265,12 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
   const searchParams = useSearchParams();
   const [imgError, setImgError] = React.useState(false);
 
-  // Get today and tomorrow dates
+  // Get tomorrow and day after tomorrow dates (users can't book for today)
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
   // Create a new URLSearchParams object with default date values
   const params = new URLSearchParams(searchParams.toString());
@@ -276,10 +278,10 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
 
   // Add default values for 'from' and 'to' parameters if not present
   if (!params.has("from")) {
-    params.set("from", format(today, "yyyy-MM-dd"));
+    params.set("from", format(tomorrow, "yyyy-MM-dd"));
   }
   if (!params.has("to")) {
-    params.set("to", format(tomorrow, "yyyy-MM-dd"));
+    params.set("to", format(dayAfterTomorrow, "yyyy-MM-dd"));
   }
 
   const stringQuery = params.toString();

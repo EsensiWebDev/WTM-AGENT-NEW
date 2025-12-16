@@ -64,14 +64,15 @@ const SearchFilter = ({
   const provinces = React.use(provincesPromise);
   const today = new Date();
   const tomorrow = addDays(today, 1);
+  const dayAfterTomorrow = addDays(today, 2);
 
   const [province, setProvince] = useQueryState(
     "province",
     parseAsString.withOptions({ shallow: false }),
   );
   const [{ from, to }, setDateRange] = useQueryStates({
-    from: dateRangeParser.withDefault(today).withOptions({ shallow: false }),
-    to: dateRangeParser.withDefault(tomorrow).withOptions({ shallow: false }),
+    from: dateRangeParser.withDefault(tomorrow).withOptions({ shallow: false }),
+    to: dateRangeParser.withDefault(dayAfterTomorrow).withOptions({ shallow: false }),
   });
   const [room, setRoom] = useQueryState(
     "total_rooms",
@@ -95,8 +96,8 @@ const SearchFilter = ({
   const hasActiveFilters = React.useMemo(() => {
     const isProvinceChanged = province !== null;
     const isDateChanged =
-      format(from, "yyyy-MM-dd") !== format(today, "yyyy-MM-dd") ||
-      format(to, "yyyy-MM-dd") !== format(tomorrow, "yyyy-MM-dd");
+      format(from, "yyyy-MM-dd") !== format(tomorrow, "yyyy-MM-dd") ||
+      format(to, "yyyy-MM-dd") !== format(dayAfterTomorrow, "yyyy-MM-dd");
     const isRoomChanged = room !== 1;
     const isPromoChanged = promo !== null;
     const isAdultChanged = adult !== 1;
@@ -110,7 +111,7 @@ const SearchFilter = ({
       isAdultChanged ||
       isChildrenChanged
     );
-  }, [province, from, to, room, promo, adult, children, today, tomorrow]);
+  }, [province, from, to, room, promo, adult, children, tomorrow, dayAfterTomorrow]);
 
   const [, setAdult] = useQueryState(
     "total_adults",
@@ -123,7 +124,7 @@ const SearchFilter = ({
 
   const handleReset = () => {
     setProvince(null);
-    setDateRange({ from: today, to: tomorrow });
+    setDateRange({ from: tomorrow, to: dayAfterTomorrow });
     setRoom(1);
     setPromo(null);
     setAdult(1);
@@ -141,7 +142,7 @@ const SearchFilter = ({
           <LocationSelector provinces={provinces} />
           <DateRangePicker />
           <GuestCounter />
-          <PromoButton />
+          <PromoButton from={from} to={to} />
           {hasActiveFilters && (
             <Button
               variant="outline"
@@ -243,10 +244,11 @@ const DateRangePicker = () => {
   // Set today to start of day (midnight) for accurate comparison
   today.setHours(0, 0, 0, 0);
   const tomorrow = addDays(today, 1);
+  const dayAfterTomorrow = addDays(today, 2);
 
   const [{ from, to }, setDateRange] = useQueryStates({
-    from: dateRangeParser.withDefault(today).withOptions({ shallow: false }),
-    to: dateRangeParser.withDefault(tomorrow).withOptions({ shallow: false }),
+    from: dateRangeParser.withDefault(tomorrow).withOptions({ shallow: false }),
+    to: dateRangeParser.withDefault(dayAfterTomorrow).withOptions({ shallow: false }),
   });
 
   return (
@@ -291,8 +293,8 @@ const DateRangePicker = () => {
             }
           }}
           disabled={(date) => {
-            // Disable dates before today
-            return date < today;
+            // Disable dates before tomorrow (users can't book for today)
+            return date < tomorrow;
           }}
           className="rounded-lg border shadow-sm"
         />
@@ -435,13 +437,20 @@ const GuestCounter = () => {
   );
 };
 
-const PromoButton = () => {
+const PromoButton = ({ from, to }: { from: Date; to: Date }) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPromo, setSelectedPromo] = useQueryState(
     "promo_id",
     parseAsString.withOptions({ shallow: false }),
   );
+
+  // Calculate number of nights from selected dates
+  const calculateNights = React.useMemo(() => {
+    if (!from || !to) return 0;
+    const timeDiff = Math.abs(to.getTime() - from.getTime());
+    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+  }, [from, to]);
 
   const {
     data: promosData,
@@ -452,8 +461,14 @@ const PromoButton = () => {
     queryFn: () => getPromos({ searchParams: { limit: "0" } }),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 2,
-    enabled: open,
+    enabled: open || !!selectedPromo, // Fetch when dialog is open OR when a promo is selected
   });
+
+  // Find the selected promo object
+  const selectedPromoData = React.useMemo(() => {
+    if (!selectedPromo || !promosData?.data) return null;
+    return promosData.data.find((promo) => String(promo.id) === selectedPromo);
+  }, [selectedPromo, promosData]);
 
   // Filter promos based on search term
   const filteredPromos =
@@ -464,7 +479,29 @@ const PromoButton = () => {
         promo.description.toLowerCase().includes(searchTerm.toLowerCase()),
     ) || [];
 
-  const handlePromoSelect = (promoCode: string) => {
+  // Check if a promo is valid for the selected stay duration
+  const isPromoValid = React.useCallback((promo: { total_nights?: number }) => {
+    // If promo doesn't have total_nights requirement, it's always valid
+    if (!promo.total_nights) return true;
+    
+    // If dates are not selected, we can't validate
+    if (!from || !to) return true;
+    
+    // Promo is valid if user's stay duration matches the promo's required nights
+    return calculateNights === promo.total_nights;
+  }, [from, to, calculateNights]);
+
+  const handlePromoSelect = (promoCode: string, promo: { total_nights?: number; name: string }) => {
+    // Validate before selecting
+    if (!isPromoValid(promo)) {
+      const requiredNights = promo.total_nights ?? 0;
+      toast.error("Promo not applicable", {
+        description: `This promo requires ${requiredNights} night${requiredNights > 1 ? 's' : ''} stay, but you selected ${calculateNights} night${calculateNights !== 1 ? 's' : ''}.`,
+        duration: 5000,
+      });
+      return;
+    }
+
     setSelectedPromo(promoCode);
     setOpen(false);
     toast.success("Promo applied!", {
@@ -473,13 +510,35 @@ const PromoButton = () => {
     });
   };
 
+  // Determine button label based on selected promo
+  const getButtonLabel = () => {
+    if (selectedPromoData) {
+      // Truncate promo name on mobile if too long
+      const displayName = selectedPromoData.name.length > 15 
+        ? `${selectedPromoData.name.substring(0, 15)}...`
+        : selectedPromoData.name;
+      
+      return (
+        <>
+          <span className="hidden sm:inline">Promo: {selectedPromoData.name}</span>
+          <span className="sm:hidden">Promo: {displayName}</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <span className="hidden sm:inline">Find Your Promo</span>
+        <span className="sm:hidden">Promo</span>
+      </>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <CirclePercent className="mr-2 h-4 w-4 flex-shrink-0" />
-          <span className="hidden sm:inline">Find Your Promo</span>
-          <span className="sm:hidden">Promo</span>
+          {getButtonLabel()}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto bg-white sm:max-w-[700px]">
@@ -526,26 +585,52 @@ const PromoButton = () => {
                       </AccordionTrigger>
                       <Button
                         size="sm"
-                        onClick={() => handlePromoSelect(String(promo.id))}
+                        onClick={() => handlePromoSelect(String(promo.id), promo)}
                         className="ml-4 shrink-0"
-                        disabled={selectedPromo === String(promo.id)}
+                        disabled={
+                          selectedPromo === String(promo.id) || !isPromoValid(promo)
+                        }
+                        title={
+                          !isPromoValid(promo) && promo.total_nights
+                            ? `This promo requires ${promo.total_nights} night${promo.total_nights > 1 ? 's' : ''} stay`
+                            : undefined
+                        }
                       >
                         {selectedPromo === String(promo.id)
                           ? "Selected"
-                          : "Select"}
+                          : !isPromoValid(promo)
+                            ? "Not Valid"
+                            : "Select"}
                       </Button>
                     </div>
                     <AccordionContent>
-                      {/* Hotels in this promo */}
-                      <div className="space-y-1">
-                        {promo.hotel.map((hotelName, index) => (
-                          <h5
-                            key={`${promo.id}-${index}`}
-                            className="text-muted-foreground"
-                          >
-                            {hotelName}
-                          </h5>
-                        ))}
+                      {/* Promo details */}
+                      <div className="space-y-2">
+                        {promo.description && (
+                          <p className="text-sm text-gray-700">{promo.description}</p>
+                        )}
+                        {promo.total_nights && (
+                          <p className="text-xs text-gray-500">
+                            Requires {promo.total_nights} night{promo.total_nights > 1 ? 's' : ''} stay
+                            {!isPromoValid(promo) && from && to && (
+                              <span className="ml-2 text-red-600">
+                                (Your stay: {calculateNights} night{calculateNights !== 1 ? 's' : ''})
+                              </span>
+                            )}
+                          </p>
+                        )}
+                        {/* Hotels in this promo */}
+                        <div className="space-y-1 mt-2">
+                          <p className="text-xs font-semibold text-gray-600">Available at:</p>
+                          {promo.hotel.map((hotelName, index) => (
+                            <h5
+                              key={`${promo.id}-${index}`}
+                              className="text-muted-foreground text-sm"
+                            >
+                              {hotelName}
+                            </h5>
+                          ))}
+                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>

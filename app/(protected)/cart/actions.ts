@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { InvoiceData } from "../history-booking/types";
 import { getContactDetails, saveContactDetails } from "./fetch";
+import { GuestPayload } from "./types";
 
 export async function addUserAsGuest(user: User) {
   // Simulate API call delay
@@ -163,12 +164,40 @@ export async function checkoutCart(): Promise<ActionResponse<InvoiceData[]>> {
   }
 }
 
-export const addGuest = async (input: { cart_id: number; guest: string }) => {
+export const addGuest = async (input: {
+  cart_id: number;
+  guest?: string;
+  guests?: string[];
+  guestData?: GuestPayload[];
+}) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
+
+  // Convert to structured GuestPayload[] format
+  let guestPayloads: GuestPayload[] = [];
+  if (input.guestData) {
+    guestPayloads = input.guestData;
+  } else if (input.guests) {
+    // Legacy: convert string[] to GuestPayload[]
+    guestPayloads = input.guests.map((name) => ({
+      name,
+      honorific: "Mr",
+      category: "Adult",
+    }));
+  } else if (input.guest) {
+    // Legacy: convert string to GuestPayload[]
+    guestPayloads = [
+      {
+        name: input.guest,
+        honorific: "Mr",
+        category: "Adult",
+      },
+    ];
+  }
+
   const body = {
     cart_id: input.cart_id,
-    guests: [input.guest],
+    guests: guestPayloads,
   };
 
   try {
@@ -213,13 +242,33 @@ export const addGuest = async (input: { cart_id: number; guest: string }) => {
 
 export const removeGuest = async (input: {
   cart_id: number;
-  guest: string;
+  guest?: string;
+  guestData?: GuestPayload;
 }) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
+
+  // Convert to structured GuestPayload format
+  let guestPayload: GuestPayload;
+  if (input.guestData) {
+    guestPayload = input.guestData;
+  } else if (input.guest) {
+    // Legacy: convert string to GuestPayload
+    guestPayload = {
+      name: input.guest,
+      honorific: "Mr",
+      category: "Adult",
+    };
+  } else {
+    return {
+      success: false,
+      message: "Guest data is required",
+    };
+  }
+
   const body = {
     cart_id: input.cart_id,
-    guest: [input.guest],
+    guest: guestPayload,
   };
 
   try {

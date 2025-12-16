@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactDetail } from "@/app/(protected)/cart/types";
+import { ContactDetail, GuestPayload } from "@/app/(protected)/cart/types";
 import { DataTable } from "@/components/data-table/data-table";
 import {
   getCoreRowModel,
@@ -11,6 +11,7 @@ import React, { useTransition } from "react";
 import { toast } from "sonner";
 import { getContactDetailsTableColumns } from "./contact-details-columns";
 import { removeGuest } from "@/app/(protected)/cart/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ContactDetailsTableProps {
   data: ContactDetail[];
@@ -22,15 +23,25 @@ export function ContactDetailsTable({
   cart_id,
 }: ContactDetailsTableProps) {
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   const handleRemoveGuest = (contactDetail: ContactDetail) => {
     startTransition(async () => {
       try {
+        // Construct GuestPayload from ContactDetail
+        const guestData: GuestPayload = {
+          name: contactDetail.name,
+          honorific: contactDetail.honorific || "Mr",
+          category: contactDetail.category || "Adult",
+          age: contactDetail.age,
+        };
+
         const response = await removeGuest({
           cart_id: cart_id,
-          guest: contactDetail.name,
+          guestData: guestData,
         });
         if (response.success) {
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
           toast.success(response.message || "Guest removed successfully!");
         } else {
           toast.error(

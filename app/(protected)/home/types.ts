@@ -46,6 +46,7 @@ export interface PromoHomePage {
   hotel: string[];
   id: number;
   name: string;
+  total_nights?: number; // Optional: minimum nights required for this promo
 }
 
 export interface Banner {

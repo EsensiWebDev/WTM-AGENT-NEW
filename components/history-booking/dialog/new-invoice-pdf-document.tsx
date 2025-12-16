@@ -45,6 +45,8 @@ export interface NewInvoiceData {
     price: number;
     total: number;
     total_before_promo: number;
+    category?: string;
+    is_additional_service?: boolean;
   }>;
   totalPrice: number;
   totalBeforePromo: number;
@@ -283,6 +285,7 @@ export const NewInvoicePDFDocument: React.FC<{
                 padding: 8,
                 borderRightWidth: 1,
                 borderRightColor: "#e5e7eb",
+                paddingLeft: item.is_additional_service ? 20 : 8,
               }}
             >
               <Text style={{ fontSize: 10 }}>{item.description}</Text>
@@ -307,7 +310,11 @@ export const NewInvoicePDFDocument: React.FC<{
                 alignItems: "center",
               }}
             >
-              <Text style={{ fontSize: 10 }}>{item.unit}</Text>
+              <Text style={{ fontSize: 10 }}>
+                {item.category === "price" && item.unit === "pax"
+                  ? "item"
+                  : item.unit}
+              </Text>
             </View>
             <View
               style={{

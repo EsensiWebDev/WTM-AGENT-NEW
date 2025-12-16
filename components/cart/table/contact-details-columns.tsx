@@ -30,7 +30,30 @@ export function getContactDetailsTableColumns({
       id: "name",
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => row.original.name,
+      cell: ({ row }) => {
+        const contact = row.original;
+        const honorific = contact.honorific || "";
+        const category = contact.category || "";
+        const age = contact.age;
+        
+        // Format: "Mr John Doe" or "Mrs Jane Doe (Child, 5 years)"
+        const nameParts = [honorific, contact.name].filter(Boolean);
+        const categoryInfo =
+          category === "Child" && age
+            ? ` (${category}, ${age} years)`
+            : category === "Adult"
+              ? ` (${category})`
+              : "";
+
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium">
+              {nameParts.join(" ")}
+              {categoryInfo}
+            </span>
+          </div>
+        );
+      },
       enableSorting: false,
       enableHiding: false,
       size: 600,

@@ -6,6 +6,7 @@ import {
   selectGuest,
 } from "@/app/(protected)/cart/actions";
 import { fetchCart } from "@/app/(protected)/cart/fetch";
+import { GuestPayload } from "@/app/(protected)/cart/types";
 import {
   HistoryBooking,
   InvoiceData,
@@ -89,7 +90,7 @@ interface HotelRoomCardProps {
   bookingDetails: Awaited<
     ReturnType<typeof fetchCart>
   >["data"]["detail"][number];
-  guests: string[];
+  guests: (string | GuestPayload)[] | null;
 }
 
 const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
@@ -97,6 +98,22 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   const [isPending, startTransition] = useTransition();
   const [isSelecting, startSelectTransition] = useTransition();
   const [imageError, setImageError] = useState(false);
+
+  // Normalize guests to string[] for Select component
+  const normalizeGuests = useMemo(() => {
+    if (!guests) return [];
+    return guests.map((guest) => {
+      if (typeof guest === "string") {
+        return guest;
+      }
+      // Format: "Mr John Doe" or "Mrs Jane Doe (Child, 5 years)"
+      const ageSuffix =
+        guest.category === "Child" && guest.age
+          ? ` (${guest.category}, ${guest.age} years)`
+          : "";
+      return `${guest.honorific} ${guest.name}${ageSuffix}`;
+    });
+  }, [guests]);
 
   // Determine if we should show placeholder
   const shouldShowPlaceholder = !bookingDetails.photo || imageError;
@@ -297,21 +314,78 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
             </span>
           </div>
 
-          {/* Additional Services */}
-          {bookingDetails.additional?.map((additional, idx) => (
-            <React.Fragment
-              key={`${bookingDetails.room_type_name}-additional-${idx}`}
-            >
+          {/* Bed Type */}
+          {(bookingDetails.bed_type || (bookingDetails.bed_types && bookingDetails.bed_types.length > 0)) && (
+            <>
+              <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                Bed Type
+              </span>
               <div className="col-span-1 md:col-span-2">
-                <span className="text-sm font-medium">{additional.name}</span>
-              </div>
-              <div className="flex text-sm md:flex-col md:justify-center">
-                <span className="text-right text-sm font-medium">
-                  {formatPrice(additional.price)}
+                <span className="text-sm font-medium">
+                  {bookingDetails.bed_type || bookingDetails.bed_types?.join(", ")}
                 </span>
               </div>
-            </React.Fragment>
-          ))}
+              <div className="flex text-sm md:flex-col md:justify-center">
+                <span className="text-right text-sm font-medium text-gray-400">
+                  {/* Intentionally left blank */}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Additional Services */}
+          {bookingDetails.additional && bookingDetails.additional.length > 0 && (
+            <>
+              <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                Additional Services
+              </span>
+              {bookingDetails.additional.map((additional, idx) => {
+                const category = additional.category || "price";
+                const displayValue =
+                  category === "pax" && additional.pax !== undefined
+                    ? `${additional.pax} ${additional.pax === 1 ? "Pax" : "Pax"}`
+                    : formatPrice(additional.price || 0);
+
+                return (
+                  <React.Fragment
+                    key={`${bookingDetails.room_type_name}-additional-${idx}`}
+                  >
+                    <div className="col-span-1 md:col-span-2">
+                      <span className="text-sm font-medium">{additional.name}</span>
+                    </div>
+                    <div className="flex text-sm md:flex-col md:justify-center">
+                      <span className="text-right text-sm font-medium">
+                        {displayValue}
+                      </span>
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </>
+          )}
+
+          {/* Other Preferences */}
+          {bookingDetails.other_preferences && bookingDetails.other_preferences.length > 0 && (
+            <>
+              <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                Other Preferences
+              </span>
+              {bookingDetails.other_preferences.map((preference, idx) => (
+                <React.Fragment
+                  key={`${bookingDetails.room_type_name}-preference-${idx}`}
+                >
+                  <div className="col-span-1 md:col-span-2">
+                    <span className="text-sm font-medium">{preference}</span>
+                  </div>
+                  <div className="flex text-sm md:flex-col md:justify-center">
+                    <span className="text-right text-sm font-medium text-gray-400">
+                      {/* Intentionally left blank */}
+                    </span>
+                  </div>
+                </React.Fragment>
+              ))}
+            </>
+          )}
 
           <div className="mt-4 flex items-center gap-4">
             <span className="text-sm whitespace-nowrap">Guest Name</span>
@@ -324,8 +398,8 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
                 <SelectValue placeholder="Select Guest" />
               </SelectTrigger>
               <SelectContent>
-                {guests ? (
-                  guests.map((guestName, index) => (
+                {normalizeGuests.length > 0 ? (
+                  normalizeGuests.map((guestName, index) => (
                     <SelectItem key={`${guestName}-${index}`} value={guestName}>
                       {guestName}
                     </SelectItem>

@@ -15,17 +15,19 @@ export const getHotels = async ({
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
 
-  // Get today and tomorrow dates
+  // Get tomorrow and day after tomorrow dates (users can't book for today)
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
   const searchParamsWithDefaults: SearchParams = {
     ...searchParams,
     limit: searchParams.limit || "9",
     page: searchParams.page || "1",
-    from: searchParams.from || format(today, "yyyy-MM-dd"),
-    to: searchParams.to || format(tomorrow, "yyyy-MM-dd"),
+    from: searchParams.from || format(tomorrow, "yyyy-MM-dd"),
+    to: searchParams.to || format(dayAfterTomorrow, "yyyy-MM-dd"),
     total_rooms: searchParams.total_rooms || "1",
     total_guests:
       String(

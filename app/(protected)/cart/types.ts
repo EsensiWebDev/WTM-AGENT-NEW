@@ -1,3 +1,13 @@
+export type GuestHonorific = "Mr" | "Mrs" | "Miss";
+export type GuestCategory = "Adult" | "Child";
+
+export interface GuestPayload {
+  name: string;
+  honorific: GuestHonorific;
+  category: GuestCategory;
+  age?: number; // Required when category is "Child"
+}
+
 export type Cart = {
   detail: [
     {
@@ -5,8 +15,12 @@ export type Cart = {
         {
           name: string;
           price: number;
+          category?: string;
+          pax?: number;
         },
       ];
+      bed_type?: string;
+      bed_types?: string[];
       check_in_date: string;
       check_out_date: string;
       guest: string;
@@ -15,6 +29,7 @@ export type Cart = {
       id: number;
       photo?: string;
       is_breakfast: true;
+      other_preferences?: string[];
       price: number;
       promo: {
         benefit: string;
@@ -31,7 +46,7 @@ export type Cart = {
     },
   ];
   grand_total: number;
-  guest: string[];
+  guest: string[] | GuestPayload[];
   id: number;
 };
 
@@ -39,6 +54,9 @@ export interface ContactDetail {
   id: string;
   no: number;
   name: string;
+  honorific?: GuestHonorific;
+  category?: GuestCategory;
+  age?: number;
 }
 
 export interface ContactDetailsTableProps {

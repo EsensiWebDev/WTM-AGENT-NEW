@@ -12,6 +12,10 @@ export interface AddToCartRequest {
   quantity: number;
   room_price_id: number;
   room_type_additional_ids?: number[];
+  other_preference_ids?: number[];
+  additionals?: { id: number; name: string }[];
+  other_preferences?: { id: number; name: string }[];
+  bed_type?: string;
 }
 
 export async function addRoomToCart(

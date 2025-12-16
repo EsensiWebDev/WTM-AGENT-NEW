@@ -7,7 +7,6 @@ import {
 import { RoomType } from "@/app/(protected)/hotel/[id]/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Minus, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -15,6 +14,9 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Spinner } from "../ui/spinner";
 import { AdditionalServices } from "./additional-services";
+import { AddToCartSummaryDialog } from "./add-to-cart-summary-dialog";
+import { BedTypeSelection } from "./bed-type-selection";
+import { OtherPreferences } from "./other-preferences";
 import { PromoSelection } from "./promo-selection";
 import RoomDetailsDialog from "./room-details-dialog";
 import { RoomFeatures } from "./room-features";
@@ -24,12 +26,33 @@ import { RoomOptions } from "./room-options";
 export default function RoomCard({ room }: { room: RoomType }) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [summaryData, setSummaryData] = useState<{
+    roomName: string;
+    checkInDate: string;
+    checkOutDate: string;
+    quantity: number;
+    bedType: string;
+    additionalServices: typeof room.additional;
+    otherPreferences: NonNullable<typeof room.other_preferences>;
+    isBreakfast: boolean;
+  } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<number>(0);
   const [roomQuantity, setRoomQuantity] = useState(1);
-  const [selectedAdditionals, setSelectedAdditionals] = useState<string[]>([]);
+  
+  // Initialize selectedAdditionals with required services
+  const [selectedAdditionals, setSelectedAdditionals] = useState<string[]>(() => {
+    return room.additional
+      .filter((add) => add.is_required === true)
+      .map((add) => String(add.id));
+  });
+  
+  const [selectedOtherPreferences, setSelectedOtherPreferences] = useState<number[]>([]);
+  const [selectedBedType, setSelectedBedType] = useState<string | null>(
+    room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
+  );
   const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   const roomImages = room.photos || [];
 
@@ -44,7 +67,16 @@ export default function RoomCard({ room }: { room: RoomType }) {
   const resetForm = () => {
     setSelectedRoom(0);
     setRoomQuantity(1);
-    setSelectedAdditionals([]);
+    // Reset to required services only
+    setSelectedAdditionals(
+      room.additional
+        .filter((add) => add.is_required === true)
+        .map((add) => String(add.id))
+    );
+    setSelectedOtherPreferences([]);
+    setSelectedBedType(
+      room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
+    );
     setSelectedPromo(null);
   };
 
@@ -64,9 +96,34 @@ export default function RoomCard({ room }: { room: RoomType }) {
     setSelectedPromo(promoId);
   };
 
+  const handleOtherPreferenceChange = (preferenceId: number, checked: boolean) => {
+    setSelectedOtherPreferences((prev) => {
+      if (checked) {
+        return prev.includes(preferenceId) ? prev : [...prev, preferenceId];
+      } else {
+        return prev.filter((id) => id !== preferenceId);
+      }
+    });
+  };
+
   const handleAddToCart = async () => {
     if (!from || !to) {
       toast.error("Please select a check-in and check-out date.");
+      return;
+    }
+
+    // Get selected additional services with names
+    const selectedAdditionalsWithNames = room.additional
+      .filter((add) => selectedAdditionals.includes(String(add.id)))
+      .map((add) => ({ id: add.id, name: add.name }));
+
+    // Get selected other preferences with names
+    const selectedOtherPreferencesWithNames = room.other_preferences
+      ?.filter((pref) => selectedOtherPreferences.includes(pref.id))
+      .map((pref) => ({ id: pref.id, name: pref.name })) || [];
+
+    if (!selectedBedType) {
+      toast.error("Please select a bed type.");
       return;
     }
 
@@ -77,6 +134,10 @@ export default function RoomCard({ room }: { room: RoomType }) {
       quantity: roomQuantity,
       room_price_id: selectedRoom,
       room_type_additional_ids: selectedAdditionals.map((id) => Number(id)),
+      other_preference_ids: selectedOtherPreferences,
+      additionals: selectedAdditionalsWithNames,
+      other_preferences: selectedOtherPreferencesWithNames,
+      bed_type: selectedBedType,
     } as AddToCartRequest;
 
     startTransition(async () => {
@@ -86,14 +147,32 @@ export default function RoomCard({ room }: { room: RoomType }) {
         queryClient.invalidateQueries({
           queryKey: ["cart"],
         });
-        resetForm();
-        toast.success(message || "Room added to cart successfully", {
-          action: {
-            label: "View Cart",
-            onClick: () => router.push("/cart"),
-          },
-          duration: 5000,
+        
+        // Prepare summary data for dialog before resetting form
+        const isBreakfast = selectedRoom === room.with_breakfast.id;
+        const selectedAdditionalServices = room.additional.filter((add) =>
+          selectedAdditionals.includes(String(add.id))
+        );
+        const selectedOtherPrefs = room.other_preferences?.filter((pref) =>
+          selectedOtherPreferences.includes(pref.id)
+        ) || [];
+
+        // Store summary data before resetting
+        setSummaryData({
+          roomName: room.name,
+          checkInDate: from!,
+          checkOutDate: to!,
+          quantity: roomQuantity,
+          bedType: selectedBedType!,
+          additionalServices: selectedAdditionalServices,
+          otherPreferences: selectedOtherPrefs || [],
+          isBreakfast,
         });
+
+        resetForm();
+        
+        // Show summary dialog instead of toast
+        setIsSummaryDialogOpen(true);
       } else {
         toast.error(message || "Failed to add room to cart. Please try again.");
       }
@@ -107,7 +186,6 @@ export default function RoomCard({ room }: { room: RoomType }) {
       icon: room.is_smoking_room ? "CigaretteOff" : "Cigarette",
       text: room.is_smoking_room ? "Non Smoking" : "Smoking",
     },
-    { icon: "Bed", text: `${room.bed_types?.join(", ")}` },
   ];
 
   return (
@@ -146,6 +224,22 @@ export default function RoomCard({ room }: { room: RoomType }) {
                 additionals={room.additional}
                 selectedAdditionals={selectedAdditionals}
                 onAdditionalChange={handleAdditionalChange}
+              />
+            )}
+
+            {room.other_preferences && room.other_preferences.length > 0 && (
+              <OtherPreferences
+                preferences={room.other_preferences}
+                selectedPreferences={selectedOtherPreferences}
+                onPreferenceChange={handleOtherPreferenceChange}
+              />
+            )}
+
+            {room.bed_types && room.bed_types.length > 0 && (
+              <BedTypeSelection
+                bedTypes={room.bed_types}
+                selectedBedType={selectedBedType}
+                onBedTypeChange={setSelectedBedType}
               />
             )}
 
@@ -207,6 +301,15 @@ export default function RoomCard({ room }: { room: RoomType }) {
           room={room}
           features={features}
         />
+
+        {/* Add to Cart Summary Dialog */}
+        {summaryData && (
+          <AddToCartSummaryDialog
+            open={isSummaryDialogOpen}
+            onOpenChange={setIsSummaryDialogOpen}
+            summary={summaryData}
+          />
+        )}
       </div>
     </Card>
   );
