@@ -16,6 +16,7 @@ export interface AddToCartRequest {
   additionals?: { id: number; name: string }[];
   other_preferences?: { id: number; name: string }[];
   bed_type?: string;
+  additional_notes?: string; // Optional: Notes for admin only (not sent in automated emails)
 }
 
 export async function addRoomToCart(

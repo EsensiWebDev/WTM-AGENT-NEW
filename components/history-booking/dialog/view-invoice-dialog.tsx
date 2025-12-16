@@ -515,6 +515,18 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                     ))}
                   </div>
                 )}
+
+                {/* Additional Notes */}
+                {invoice?.additional_notes && (
+                  <div className="mt-4 space-y-2">
+                    <span className="text-muted-foreground text-xs">
+                      Additional Notes
+                    </span>
+                    <div className="whitespace-pre-line rounded-md bg-gray-100 p-3 text-sm text-gray-700">
+                      {invoice.additional_notes}
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           </div>

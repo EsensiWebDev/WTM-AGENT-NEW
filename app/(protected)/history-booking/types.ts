@@ -38,6 +38,15 @@ export interface InvoiceData {
   invoice_date: string;
   receipt: string;
   bed_type?: string;
+  additional_notes?: string;
+}
+
+export interface AdditionalServiceDetail {
+  name: string;
+  category: "pax" | "price";
+  price: number | null;
+  pax: number | null;
+  is_required: boolean;
 }
 
 export interface SubBookingDetail {
@@ -45,12 +54,16 @@ export interface SubBookingDetail {
   agent_name: string;
   hotel_name: string;
   additional: string[] | null;
+  additional_services?: AdditionalServiceDetail[];
+  other_preferences?: string[] | null;
   sub_booking_id: string;
   booking_status: string;
   payment_status: string;
   cancellation_date: string;
   invoice: InvoiceData;
   receipt: string;
+  additional_notes?: string;
+  admin_notes?: string;
 }
 
 export interface HistoryBooking {
@@ -63,6 +76,7 @@ export interface HistoryBooking {
   invoices: InvoiceData[];
   receipts: string[] | null;
   notes?: string;
+  admin_notes?: string;
 }
 
 export interface HistoryBookingPageProps {

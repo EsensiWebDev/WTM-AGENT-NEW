@@ -362,3 +362,56 @@ export const selectGuest = async (input: {
     };
   }
 };
+
+export const updateAdditionalNotes = async (input: {
+  sub_cart_id: number;
+  additional_notes: string;
+}) => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+  const body = {
+    ...input,
+  };
+
+  try {
+    const response = await apiCall(`bookings/cart/sub-notes`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update additional notes",
+      };
+    }
+
+    revalidatePath("/cart", "layout");
+
+    return {
+      success: true,
+      message:
+        response.message || "Additional notes have been successfully updated",
+    };
+  } catch (error) {
+    console.error("Error updating additional notes:", error);
+
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update additional notes",
+    };
+  }
+};

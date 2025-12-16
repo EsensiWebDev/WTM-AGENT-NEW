@@ -4,6 +4,7 @@ import {
   checkoutCart,
   removeFromCart,
   selectGuest,
+  updateAdditionalNotes,
 } from "@/app/(protected)/cart/actions";
 import { fetchCart } from "@/app/(protected)/cart/fetch";
 import { GuestPayload } from "@/app/(protected)/cart/types";
@@ -25,12 +26,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Clock, Loader2, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
-import React, { useMemo, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import ViewInvoiceDialog from "../history-booking/dialog/view-invoice-dialog";
 import { formatUrl } from "@/lib/url-utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Textarea } from "../ui/textarea";
 
 interface BookingDetailsSectionProps {
   cartData: Awaited<ReturnType<typeof fetchCart>>["data"];
@@ -98,6 +100,14 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   const [isPending, startTransition] = useTransition();
   const [isSelecting, startSelectTransition] = useTransition();
   const [imageError, setImageError] = useState(false);
+  const [isSavingNotes, startNotesTransition] = useTransition();
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notes, setNotes] = useState(bookingDetails.additional_notes || "");
+
+  useEffect(() => {
+    setNotes(bookingDetails.additional_notes || "");
+    setIsEditingNotes(false);
+  }, [bookingDetails.additional_notes]);
 
   // Normalize guests to string[] for Select component
   const normalizeGuests = useMemo(() => {
@@ -135,6 +145,32 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
         }
       } catch (error) {
         toast.error("Failed to remove room from cart. Please try again.");
+      }
+    });
+  };
+
+  const handleSaveNotes = async () => {
+    startNotesTransition(async () => {
+      try {
+        const response = await updateAdditionalNotes({
+          sub_cart_id: bookingDetails.id,
+          additional_notes: notes.trim(),
+        });
+
+        if (response.success) {
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          toast.success(
+            response.message || "Additional notes updated successfully.",
+          );
+          setIsEditingNotes(false);
+        } else {
+          toast.error(
+            response.message ||
+              "Failed to update additional notes. Please try again.",
+          );
+        }
+      } catch (error) {
+        toast.error("Failed to update additional notes. Please try again.");
       }
     });
   };
@@ -365,25 +401,106 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
           )}
 
           {/* Other Preferences */}
-          {bookingDetails.other_preferences && bookingDetails.other_preferences.length > 0 && (
+          {bookingDetails.other_preferences &&
+            bookingDetails.other_preferences.length > 0 && (
+              <>
+                <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                  Other Preferences
+                </span>
+                {bookingDetails.other_preferences.map((preference, idx) => (
+                  <React.Fragment
+                    key={`${bookingDetails.room_type_name}-preference-${idx}`}
+                  >
+                    <div className="col-span-1 md:col-span-2">
+                      <span className="text-sm font-medium">{preference}</span>
+                    </div>
+                    <div className="flex text-sm md:flex-col md:justify-center">
+                      <span className="text-right text-sm font-medium text-gray-400">
+                        {/* Intentionally left blank */}
+                      </span>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </>
+            )}
+
+          {/* Additional Notes (read-only by default, editable on demand) */}
+          {!isEditingNotes ? (
             <>
               <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
-                Other Preferences
+                Additional Notes
               </span>
-              {bookingDetails.other_preferences.map((preference, idx) => (
-                <React.Fragment
-                  key={`${bookingDetails.room_type_name}-preference-${idx}`}
+              <div className="col-span-1 md:col-span-2">
+                <span
+                  className={
+                    bookingDetails.additional_notes
+                      ? "whitespace-pre-line text-sm text-gray-700"
+                      : "text-sm text-gray-400"
+                  }
                 >
-                  <div className="col-span-1 md:col-span-2">
-                    <span className="text-sm font-medium">{preference}</span>
+                  {bookingDetails.additional_notes || "No additional notes"}
+                </span>
+              </div>
+              <div className="flex items-center justify-end text-sm md:flex-col md:justify-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setIsEditingNotes(true)}
+                >
+                  Update Notes
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                Additional Notes
+              </span>
+              <div className="col-span-1 flex flex-col gap-2 md:col-span-2">
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  maxLength={500}
+                  placeholder="Enter any special notes or instructions for the admin."
+                  className="min-h-[72px] resize-y text-sm"
+                />
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{notes.length}/500 characters</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setNotes(bookingDetails.additional_notes || "");
+                        setIsEditingNotes(false);
+                      }}
+                      disabled={isSavingNotes}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={handleSaveNotes}
+                      disabled={isSavingNotes}
+                    >
+                      {isSavingNotes && (
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      )}
+                      Save Notes
+                    </Button>
                   </div>
-                  <div className="flex text-sm md:flex-col md:justify-center">
-                    <span className="text-right text-sm font-medium text-gray-400">
-                      {/* Intentionally left blank */}
-                    </span>
-                  </div>
-                </React.Fragment>
-              ))}
+                </div>
+              </div>
+              <div className="flex text-sm md:flex-col md:justify-center">
+                <span className="text-right text-sm font-medium text-gray-400">
+                  {/* Intentionally left blank */}
+                </span>
+              </div>
             </>
           )}
 

@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Spinner } from "../ui/spinner";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 import { AdditionalServices } from "./additional-services";
 import { AddToCartSummaryDialog } from "./add-to-cart-summary-dialog";
 import { BedTypeSelection } from "./bed-type-selection";
@@ -36,6 +38,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
     additionalServices: typeof room.additional;
     otherPreferences: NonNullable<typeof room.other_preferences>;
     isBreakfast: boolean;
+    additionalNotes?: string;
   } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<number>(0);
   const [roomQuantity, setRoomQuantity] = useState(1);
@@ -52,6 +55,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
     room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
   );
   const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
+  const [additionalNotes, setAdditionalNotes] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
   const roomImages = room.photos || [];
@@ -78,6 +82,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
       room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
     );
     setSelectedPromo(null);
+    setAdditionalNotes("");
   };
 
   const handleAdditionalChange = (serviceId: string, checked: boolean) => {
@@ -138,6 +143,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
       additionals: selectedAdditionalsWithNames,
       other_preferences: selectedOtherPreferencesWithNames,
       bed_type: selectedBedType,
+      additional_notes: additionalNotes.trim() || undefined,
     } as AddToCartRequest;
 
     startTransition(async () => {
@@ -167,6 +173,7 @@ export default function RoomCard({ room }: { room: RoomType }) {
           additionalServices: selectedAdditionalServices,
           otherPreferences: selectedOtherPrefs || [],
           isBreakfast,
+          additionalNotes: additionalNotes.trim() || undefined,
         });
 
         resetForm();
@@ -242,6 +249,24 @@ export default function RoomCard({ room }: { room: RoomType }) {
                 onBedTypeChange={setSelectedBedType}
               />
             )}
+
+            {/* Additional Notes Section */}
+            <div className="mt-4 sm:mt-6">
+              <Label htmlFor={`additional-notes-${room.name}`} className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Additional Notes
+              </Label>
+              <Textarea
+                id={`additional-notes-${room.name}`}
+                placeholder="Enter any special notes or instructions for the admin."
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                className="min-h-[80px] resize-y text-sm"
+                maxLength={500}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {additionalNotes.length}/500 characters
+              </p>
+            </div>
 
             <RoomFeatures features={features} />
 

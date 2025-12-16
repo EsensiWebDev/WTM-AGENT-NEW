@@ -26,6 +26,7 @@ interface AddToCartSummaryDialogProps {
     additionalServices: AdditionalService[];
     otherPreferences: OtherPreference[];
     isBreakfast: boolean;
+    additionalNotes?: string;
   };
 }
 
@@ -146,6 +147,18 @@ export function AddToCartSummaryDialog({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Additional Notes */}
+          {summary.additionalNotes && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                Additional Notes
+              </h3>
+              <p className="whitespace-pre-line text-sm text-gray-700">
+                {summary.additionalNotes}
+              </p>
             </div>
           )}
         </div>

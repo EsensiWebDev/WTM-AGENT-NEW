@@ -67,7 +67,10 @@ const ViewNotesDialog: React.FC<ViewNotesDialogProps> = ({
               <div className="space-y-2">
                 <span className="text-sm font-medium text-gray-900">Notes</span>
                 <div className="min-h-[60px] rounded-md bg-gray-100 p-3 text-sm text-gray-700">
-                  {booking.notes || "No notes available"}
+                  {booking.admin_notes || 
+                   booking.notes || 
+                   (booking.detail && booking.detail.length > 0 && booking.detail[0]?.admin_notes) ||
+                   "No notes available"}
                 </div>
               </div>
 

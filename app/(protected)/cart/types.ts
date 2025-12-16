@@ -30,6 +30,7 @@ export type Cart = {
       photo?: string;
       is_breakfast: true;
       other_preferences?: string[];
+      additional_notes?: string;
       price: number;
       promo: {
         benefit: string;

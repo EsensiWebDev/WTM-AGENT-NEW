@@ -31,7 +31,7 @@ import {
   IconFileDescription,
   IconReceipt,
 } from "@tabler/icons-react";
-import { Ellipsis } from "lucide-react";
+import { ChevronDown, ChevronUp, Ellipsis } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -64,6 +64,7 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
   const [cancelSubBookingId, setCancelSubBookingId] = React.useState<
     string | null
   >(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleViewInvoice = (index: number) => {
     setInvoiceIndex(index);
@@ -112,6 +113,14 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
   };
 
   const bookingDetails = booking?.detail || [];
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
 
   const getStatusBadge = (status: string, type: "booking" | "payment") => {
     if (type === "booking") {
@@ -255,12 +264,66 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
                             <p className="font-medium capitalize">
                               {detail.hotel_name}
                             </p>
-                            {detail.additional &&
-                              detail.additional.length > 0 && (
-                                <p className="text-muted-foreground text-sm capitalize">
-                                  {detail.additional.join(", ")}
+                            {detail.additional_services &&
+                            detail.additional_services.length > 0 ? (
+                              <div className="mt-2 space-y-1">
+                                {detail.additional_services.map(
+                                  (service, idx) => {
+                                    const category =
+                                      service.category || "price";
+                                    
+                                    const displayValue =
+                                      category === "pax" &&
+                                      service.pax !== null &&
+                                      service.pax !== undefined
+                                        ? `${service.pax} ${
+                                            service.pax === 1 ? "Pax" : "Pax"
+                                          }`
+                                        : category === "price" &&
+                                            service.price !== null &&
+                                            service.price !== undefined
+                                          ? formatPrice(service.price)
+                                          : "";
+
+                                    return (
+                                      <div
+                                        key={`additional-service-${idx}`}
+                                        className="flex items-center justify-between text-sm text-gray-700"
+                                      >
+                                        <span className="capitalize">
+                                          {service.name}
+                                          {service.is_required && (
+                                            <span className="ml-1 text-xs text-gray-500">
+                                              (Required)
+                                            </span>
+                                          )}
+                                        </span>
+                                        {displayValue && (
+                                          <span className="ml-2 font-medium">
+                                            {displayValue}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            ) : detail.additional &&
+                              detail.additional.length > 0 ? (
+                              <p className="text-muted-foreground text-sm capitalize">
+                                {detail.additional.join(", ")}
+                              </p>
+                            ) : null}
+                            {detail.additional_notes && (
+                              <div className="mt-2">
+                                <p className="text-xs font-medium text-gray-500 uppercase">
+                                  Additional Notes
                                 </p>
-                              )}
+                                <p className="whitespace-pre-line text-sm text-gray-700">
+                                  {detail.additional_notes}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           <div>
@@ -365,126 +428,243 @@ const ViewDetailDialog: React.FC<ViewDetailDialogProps> = ({
 
                       const isPaid =
                         detail.payment_status.toLowerCase() === "paid";
+                      const isExpanded = expandedIndex === index;
 
                       return (
-                        <TableRow
-                          key={index}
-                          className="[&:nth-child(odd)]:bg-white"
-                        >
-                          <TableCell className="font-medium capitalize">
-                            {detail.guest_name}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            {detail.agent_name}
-                          </TableCell>
-                          <TableCell>
-                            <div>
+                        <React.Fragment key={index}>
+                          {/* Summary row */}
+                          <TableRow className="[&:nth-child(odd)]:bg-white">
+                            <TableCell className="font-medium capitalize">
+                              <div className="flex items-center justify-between gap-2">
+                                <span>{detail.guest_name}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() =>
+                                    setExpandedIndex((prev) =>
+                                      prev === index ? null : index,
+                                    )
+                                  }
+                                  aria-label={
+                                    isExpanded
+                                      ? "Hide sub-booking details"
+                                      : "Show sub-booking details"
+                                  }
+                                >
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              {detail.agent_name}
+                            </TableCell>
+                            <TableCell>
                               <div className="font-medium capitalize">
                                 {detail.hotel_name}
                               </div>
-                              <div className="text-muted-foreground text-sm capitalize">
-                                {detail.additional?.join(", ")}
+                            </TableCell>
+                            <TableCell className="break-all">
+                              {detail.sub_booking_id}
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              <Badge
+                                variant={
+                                  isConfirmed
+                                    ? "green"
+                                    : isWaiting
+                                      ? "yellow"
+                                      : "red"
+                                }
+                                className="border font-medium capitalize"
+                              >
+                                {detail.booking_status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              <Badge
+                                variant={isPaid ? "green" : "red"}
+                                className="border font-medium capitalize"
+                              >
+                                {detail.payment_status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-xs">
+                                <div className="text-right text-red-600">
+                                  Cancellation Period
+                                </div>
+                                <div className="text-right text-red-600">
+                                  {detail.cancellation_date}
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="break-all">
-                            {detail.sub_booking_id}
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            <Badge
-                              variant={
-                                isConfirmed
-                                  ? "green"
-                                  : isWaiting
-                                    ? "yellow"
-                                    : "red"
-                              }
-                              className="border font-medium capitalize"
-                            >
-                              {detail.booking_status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="capitalize">
-                            <Badge
-                              variant={isPaid ? "green" : "red"}
-                              className="border font-medium capitalize"
-                            >
-                              {detail.payment_status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-xs">
-                              <div className="text-right text-red-600">
-                                Cancellation Period
-                              </div>
-                              <div className="text-right text-red-600">
-                                {detail.cancellation_date}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  aria-label="Open menu"
-                                  variant="ghost"
-                                  className="data-[state=open]:bg-muted flex size-8 p-0"
-                                >
-                                  <Ellipsis
-                                    className="size-4"
-                                    aria-hidden="true"
-                                  />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuItem
-                                  onSelect={() => handleViewInvoice(index)}
-                                >
-                                  <IconFileDescription className="mr-2 h-4 w-4" />
-                                  View Invoice
-                                  {(() => {
-                                    const invoiceCount = 1;
-                                    return invoiceCount > 1 ? (
-                                      <Badge
-                                        variant="secondary"
-                                        className="ml-2 text-xs"
-                                      >
-                                        {invoiceCount}
-                                      </Badge>
-                                    ) : null;
-                                  })()}
-                                </DropdownMenuItem>
-                                {detail.payment_status === "paid" ? (
-                                  <DropdownMenuItem
-                                    onSelect={() => handleViewReceipt(booking)}
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    aria-label="Open menu"
+                                    variant="ghost"
+                                    className="data-[state=open]:bg-muted flex size-8 p-0"
                                   >
-                                    <IconReceipt className="mr-2 h-4 w-4" />{" "}
-                                    View Receipt
-                                  </DropdownMenuItem>
-                                ) : (
+                                    <Ellipsis
+                                      className="size-4"
+                                      aria-hidden="true"
+                                    />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
                                   <DropdownMenuItem
+                                    onSelect={() => handleViewInvoice(index)}
+                                  >
+                                    <IconFileDescription className="mr-2 h-4 w-4" />
+                                    View Invoice
+                                  </DropdownMenuItem>
+                                  {detail.payment_status === "paid" ? (
+                                    <DropdownMenuItem
+                                      onSelect={() => handleViewReceipt(booking)}
+                                    >
+                                      <IconReceipt className="mr-2 h-4 w-4" />{" "}
+                                      View Receipt
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onSelect={() =>
+                                        handleUploadReceipt(detail.sub_booking_id)
+                                      }
+                                    >
+                                      <IconCloudUpload className="mr-2 h-4 w-4" />
+                                      Upload Receipt
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    variant="destructive"
                                     onSelect={() =>
-                                      handleUploadReceipt(detail.sub_booking_id)
+                                      handleCancelClick(detail.sub_booking_id)
                                     }
                                   >
-                                    <IconCloudUpload className="mr-2 h-4 w-4" />
-                                    Upload Receipt
+                                    <IconCancel className="mr-2 h-4 w-4" />
+                                    Cancel Booking
                                   </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  variant="destructive"
-                                  onSelect={() =>
-                                    handleCancelClick(detail.sub_booking_id)
-                                  }
-                                >
-                                  <IconCancel className="mr-2 h-4 w-4" />
-                                  Cancel Booking
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Expanded detail row (only when toggled) */}
+                          {isExpanded && (
+                            <TableRow className="[&>td]:border-t-0">
+                              <TableCell
+                                colSpan={8}
+                                className="bg-gray-50 px-6 py-4"
+                              >
+                                <div className="grid gap-4 md:grid-cols-3">
+                                  {/* Additional Services */}
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-medium text-gray-500 uppercase">
+                                      Additional Services
+                                    </p>
+                                    {detail.additional_services &&
+                                    detail.additional_services.length > 0 ? (
+                                      <div className="space-y-1.5">
+                                        {detail.additional_services.map(
+                                          (service, idx) => {
+                                            const category =
+                                              service.category || "price";
+                                            
+                                            const displayValue =
+                                              category === "pax" &&
+                                              service.pax !== null &&
+                                              service.pax !== undefined
+                                                ? `${service.pax} ${
+                                                    service.pax === 1
+                                                      ? "Pax"
+                                                      : "Pax"
+                                                  }`
+                                                : category === "price" &&
+                                                    service.price !== null &&
+                                                    service.price !== undefined
+                                                  ? formatPrice(service.price)
+                                                  : "";
+
+                                            return (
+                                              <div
+                                                key={`additional-service-${idx}`}
+                                                className="flex items-center justify-between text-sm text-gray-700"
+                                              >
+                                                <span className="capitalize">
+                                                  {service.name}
+                                                  {service.is_required && (
+                                                    <span className="ml-1 text-xs text-gray-500">
+                                                      (Required)
+                                                    </span>
+                                                  )}
+                                                </span>
+                                                {displayValue && (
+                                                  <span className="ml-2 font-medium whitespace-nowrap">
+                                                    {displayValue}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            );
+                                          },
+                                        )}
+                                      </div>
+                                    ) : detail.additional &&
+                                        detail.additional.length > 0 ? (
+                                      <p className="text-sm text-gray-700 capitalize">
+                                        {detail.additional.join(", ")}
+                                      </p>
+                                    ) : (
+                                      <p className="text-sm text-gray-400">
+                                        No additional services
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Other Preferences */}
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-medium text-gray-500 uppercase">
+                                      Other Preferences
+                                    </p>
+                                    {detail.other_preferences &&
+                                    detail.other_preferences.length > 0 ? (
+                                      <p className="text-sm text-gray-700 capitalize">
+                                        {detail.other_preferences.join(", ")}
+                                      </p>
+                                    ) : (
+                                      <p className="text-sm text-gray-400">
+                                        No other preferences
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Additional Notes (always show header) */}
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-medium text-gray-500 uppercase">
+                                      Additional Notes
+                                    </p>
+                                    <p
+                                      className={
+                                        detail.additional_notes
+                                          ? "whitespace-pre-line text-sm text-gray-700"
+                                          : "text-sm text-gray-400"
+                                      }
+                                    >
+                                      {detail.additional_notes ||
+                                        "No additional notes"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </TableBody>
