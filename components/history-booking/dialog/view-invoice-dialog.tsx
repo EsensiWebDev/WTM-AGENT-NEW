@@ -1,6 +1,9 @@
 "use client";
 
-import { HistoryBooking } from "@/app/(protected)/history-booking/types";
+import {
+  HistoryBooking,
+  SubBookingDetail,
+} from "@/app/(protected)/history-booking/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -107,6 +110,12 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   const invoice = allInvoiceData[currentInvoiceIndex];
   const checkInDateRaw = invoice?.check_in;
   const checkOutDateRaw = invoice?.check_out;
+
+  // Try to find the matching sub-booking detail for richer reservation info
+  const matchingSubBooking: SubBookingDetail | undefined =
+    booking?.detail?.find(
+      (detail) => detail.sub_booking_id === invoice?.sub_booking_id,
+    );
 
   // Get currency from invoice, with fallback to IDR
   // The currency should be in invoice.currency from the backend
@@ -391,8 +400,23 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
               {/* Hotel Name */}
               <div className="px-6 pb-4">
                 <h4 className="text-base font-semibold text-gray-900 sm:text-lg">
-                  {newInvoiceData.hotelName}
+                  {matchingSubBooking?.hotel_name || newInvoiceData.hotelName}
                 </h4>
+                {matchingSubBooking?.room_type_name && (
+                  <p className="mt-1 text-xs text-gray-700 sm:text-sm">
+                    {matchingSubBooking.room_type_name}
+                    {matchingSubBooking.bed_type && (
+                      <span className="ml-1 text-xs text-gray-500">
+                        ({matchingSubBooking.bed_type})
+                      </span>
+                    )}
+                    {matchingSubBooking.is_breakfast && (
+                      <span className="ml-2 text-xs text-green-700">
+                        Breakfast Included
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
 
               {/* Check-in / Check-out Dates */}
@@ -450,82 +474,251 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                 </span>
 
                 {parsedItems.rooms.map((room, idx) => (
-                  <div key={`room-${idx}`} className="flex items-center justify-between gap-4">
+                  <div
+                    key={`room-${idx}`}
+                    className="flex items-center justify-between gap-4"
+                  >
                     <div className="flex-1">
                       <div className="text-sm font-medium">
                         {room.description}
                       </div>
+                      {matchingSubBooking?.room_price && nights > 0 && (
+                        <div className="mt-0.5 text-xs text-gray-500">
+                          {formatCurrency(
+                            matchingSubBooking.room_price,
+                            newInvoiceData.currency,
+                          )}{" "}
+                          / night × {nights} night
+                          {nights > 1 ? "s" : ""}
+                        </div>
+                      )}
                     </div>
-                    <span className="text-sm font-medium whitespace-nowrap">
+                    <span className="whitespace-nowrap text-sm font-medium">
                       {formatCurrency(room.total, newInvoiceData.currency)}
                     </span>
                   </div>
                 ))}
 
+                {/* Promotion Applied */}
+                {(() => {
+                  const promo = newInvoiceData.promo;
+                  if (!promo) return false;
+
+                  const hasPromoCode =
+                    (promo.promo_code && promo.promo_code.trim() !== "") ||
+                    (promo.name && promo.name.trim() !== "");
+                  const hasPromoType =
+                    promo.type && promo.type.trim() !== "";
+                  const hasDiscount =
+                    promo.discount_percent &&
+                    promo.discount_percent > 0;
+                  const hasFixedPrice =
+                    promo.fixed_price && promo.fixed_price > 0;
+                  const hasBenefit =
+                    promo.benefit_note &&
+                    promo.benefit_note.trim() !== "";
+
+                  return (
+                    hasPromoCode ||
+                    hasPromoType ||
+                    hasDiscount ||
+                    hasFixedPrice ||
+                    hasBenefit
+                  );
+                })() && (
+                  <div className="mt-4 space-y-2">
+                    <span className="text-muted-foreground text-xs">
+                      Promotion Applied
+                    </span>
+                    <div className="rounded-md bg-blue-50 p-3 text-xs">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="font-semibold text-blue-900">
+                          Promo:{" "}
+                          {newInvoiceData.promo?.promo_code ||
+                            newInvoiceData.promo?.name ||
+                            "N/A"}
+                        </span>
+                        {newInvoiceData.promo?.type && (
+                          <span className="rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800">
+                            {newInvoiceData.promo.type}
+                          </span>
+                        )}
+                      </div>
+                      {newInvoiceData.promo?.benefit_note &&
+                        newInvoiceData.promo.benefit_note.trim() !== "" && (
+                          <p className="mb-1 text-blue-700">
+                            {newInvoiceData.promo.benefit_note}
+                          </p>
+                        )}
+                      {(() => {
+                        const promo = newInvoiceData.promo;
+                        if (!promo) return null;
+
+                        if (
+                          promo.fixed_price &&
+                          promo.fixed_price > 0
+                        ) {
+                          return (
+                            <p className="font-medium text-green-700">
+                              Fixed price:{" "}
+                              {formatCurrency(
+                                promo.fixed_price,
+                                newInvoiceData.currency,
+                              )}
+                            </p>
+                          );
+                        }
+
+                        if (
+                          promo.discount_percent &&
+                          promo.discount_percent > 0
+                        ) {
+                          return (
+                            <p className="font-medium text-green-700">
+                              {promo.discount_percent}% discount
+                            </p>
+                          );
+                        }
+
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 {/* Bed Type */}
-                {invoice?.bed_type && (
+                {(invoice?.bed_type ||
+                  matchingSubBooking?.bed_type ||
+                  (matchingSubBooking?.bed_type === "" &&
+                    matchingSubBooking?.bed_type !== undefined)) && (
                   <div className="mt-4 space-y-2">
                     <span className="text-muted-foreground text-xs">
                       Bed Type
                     </span>
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-sm font-medium">
-                        {invoice.bed_type}
+                        {matchingSubBooking?.bed_type || invoice?.bed_type}
                       </span>
                     </div>
                   </div>
                 )}
 
                 {/* Additional Services */}
-                {parsedItems.additionalServices.length > 0 && (
+                {(matchingSubBooking?.additional_services &&
+                  matchingSubBooking.additional_services.length > 0) ||
+                parsedItems.additionalServices.length > 0 ? (
                   <div className="mt-4 space-y-2">
                     <span className="text-muted-foreground text-xs">
                       Additional Services
                     </span>
-                    {parsedItems.additionalServices.map((additional, idx) => {
-                      const category = additional.category || "price";
-                      const displayValue =
-                        category === "price" && additional.price !== undefined
-                          ? formatCurrency(
-                              additional.total,
-                              newInvoiceData.currency,
-                            )
-                          : category === "pax" && additional.quantity
-                            ? `${additional.quantity} ${additional.quantity === 1 ? "person" : "people"}`
-                            : formatCurrency(
-                                additional.total,
-                                newInvoiceData.currency,
-                              );
+                    {matchingSubBooking?.additional_services &&
+                      matchingSubBooking.additional_services.map(
+                        (service, idx) => {
+                          const category = service.category || "price";
+                          const displayValue =
+                            category === "pax" && service.pax !== null
+                              ? `${service.pax} ${
+                                  service.pax === 1 ? "Pax" : "Pax"
+                                }`
+                              : formatCurrency(
+                                  service.price || 0,
+                                  matchingSubBooking.currency ||
+                                    newInvoiceData.currency,
+                                );
 
-                      return (
-                        <div key={`additional-${idx}`} className="flex items-center justify-between gap-4">
-                          <span className="text-sm font-medium">
-                            {additional.description}
-                          </span>
-                          <span className="text-sm font-medium whitespace-nowrap">
-                            {displayValue}
-                          </span>
-                        </div>
-                      );
-                    })}
+                          return (
+                            <div
+                              key={`additional-service-${idx}`}
+                              className="flex items-center justify-between gap-4"
+                            >
+                              <span className="text-sm font-medium">
+                                {service.name}
+                              </span>
+                              <span className="whitespace-nowrap text-sm font-medium">
+                                {displayValue}
+                              </span>
+                            </div>
+                          );
+                        },
+                      )}
+                    {/* Fallback to parsed invoice items if no structured services */}
+                    {(!matchingSubBooking?.additional_services ||
+                      matchingSubBooking.additional_services.length === 0) &&
+                      parsedItems.additionalServices.map(
+                        (additional, idx) => {
+                          const category = additional.category || "price";
+                          const displayValue =
+                            category === "price" &&
+                            additional.price !== undefined
+                              ? formatCurrency(
+                                  additional.total,
+                                  newInvoiceData.currency,
+                                )
+                              : category === "pax" && additional.quantity
+                                ? `${additional.quantity} ${
+                                    additional.quantity === 1
+                                      ? "person"
+                                      : "people"
+                                  }`
+                                : formatCurrency(
+                                    additional.total,
+                                    newInvoiceData.currency,
+                                  );
+
+                          return (
+                            <div
+                              key={`additional-${idx}`}
+                              className="flex items-center justify-between gap-4"
+                            >
+                              <span className="text-sm font-medium">
+                                {additional.description}
+                              </span>
+                              <span className="whitespace-nowrap text-sm font-medium">
+                                {displayValue}
+                              </span>
+                            </div>
+                          );
+                        },
+                      )}
                   </div>
-                )}
+                ) : null}
 
                 {/* Other Preferences */}
-                {parsedItems.otherPreferences.length > 0 && (
+                {(matchingSubBooking?.other_preferences &&
+                  matchingSubBooking.other_preferences.length > 0) ||
+                parsedItems.otherPreferences.length > 0 ? (
                   <div className="mt-4 space-y-2">
                     <span className="text-muted-foreground text-xs">
                       Other Preferences
                     </span>
-                    {parsedItems.otherPreferences.map((pref, idx) => (
-                      <div key={`preference-${idx}`} className="flex items-center justify-between gap-4">
-                        <span className="text-sm font-medium">
-                          {pref.description}
-                        </span>
-                      </div>
-                    ))}
+                    {matchingSubBooking?.other_preferences &&
+                      matchingSubBooking.other_preferences.map(
+                        (pref, idx) => (
+                          <div
+                            key={`preference-${idx}`}
+                            className="flex items-center justify-between gap-4"
+                          >
+                            <span className="text-sm font-medium">
+                              {pref}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    {/* Fallback to parsed preferences if no structured preferences */}
+                    {(!matchingSubBooking?.other_preferences ||
+                      matchingSubBooking.other_preferences.length === 0) &&
+                      parsedItems.otherPreferences.map((pref, idx) => (
+                        <div
+                          key={`preference-${idx}`}
+                          className="flex items-center justify-between gap-4"
+                        >
+                          <span className="text-sm font-medium">
+                            {pref.description}
+                          </span>
+                        </div>
+                      ))}
                   </div>
-                )}
+                ) : null}
 
                 {/* Additional Notes */}
                 {invoice?.additional_notes && (
@@ -573,18 +766,6 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                   </p>
                 </div>
               </div>
-              {/* Conditionally show promo badge when promo code exists */}
-              {newInvoiceData.promo?.promo_code && (
-                <div className="flex items-end justify-start sm:justify-end">
-                  <span className="flex items-center gap-1 rounded-full bg-gray-800 px-3 py-1 text-xs font-medium text-white">
-                    Promo
-                    <IconRosetteDiscount size={14} />
-                    <span className="font-semibold">
-                      {newInvoiceData.promo.promo_code}
-                    </span>
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 

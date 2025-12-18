@@ -177,7 +177,6 @@ export function SelectUserDialog({
       <DialogContent className="bg-white sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Guest(s)</DialogTitle>
-          <DialogTitle>Add Guest(s)</DialogTitle>
           <DialogDescription>
             Enter guest information. You can add multiple guests at once.
           </DialogDescription>
@@ -355,22 +354,11 @@ export function SelectUserDialog({
                       },
                     ],
                   });
-                  form.reset({
-                    guests: [
-                      {
-                        honorific: "Mr",
-                        name: "",
-                        category: "Adult",
-                        age: undefined,
-                      },
-                    ],
-                  });
                   onOpenChange(false);
                 }}
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Guest(s)</Button>
               <Button type="submit">Add Guest(s)</Button>
             </DialogFooter>
           </form>
