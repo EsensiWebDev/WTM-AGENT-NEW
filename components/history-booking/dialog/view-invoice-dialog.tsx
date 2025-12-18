@@ -108,6 +108,10 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
   const checkInDateRaw = invoice?.check_in;
   const checkOutDateRaw = invoice?.check_out;
 
+  // Get currency from invoice, with fallback to IDR
+  // The currency should be in invoice.currency from the backend
+  const invoiceCurrency = invoice?.currency || "IDR";
+
   const newInvoiceData = {
     invoiceNumber: invoice?.invoice_number || "Invoice Number Not Found",
     companyName: invoice?.company_agent || "",
@@ -136,6 +140,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
     items: invoice?.description_invoice || [],
     totalPrice: invoice?.total_price || 0,
     totalBeforePromo: invoice?.total_before_promo || 0,
+    currency: invoiceCurrency,
     promo: {
       ...invoice?.promo,
     },
@@ -438,7 +443,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                 </div>
               )}
 
-              {/* Room Selected */}
+          {/* Room Selected */}
               <div className="my-6 space-y-3 px-6">
                 <span className="text-muted-foreground text-xs">
                   Room Selected
@@ -452,7 +457,7 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                       </div>
                     </div>
                     <span className="text-sm font-medium whitespace-nowrap">
-                      {formatCurrency(room.total, "IDR")}
+                      {formatCurrency(room.total, newInvoiceData.currency)}
                     </span>
                   </div>
                 ))}
@@ -481,10 +486,16 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                       const category = additional.category || "price";
                       const displayValue =
                         category === "price" && additional.price !== undefined
-                          ? formatCurrency(additional.total, "IDR")
+                          ? formatCurrency(
+                              additional.total,
+                              newInvoiceData.currency,
+                            )
                           : category === "pax" && additional.quantity
                             ? `${additional.quantity} ${additional.quantity === 1 ? "person" : "people"}`
-                            : formatCurrency(additional.total, "IDR");
+                            : formatCurrency(
+                                additional.total,
+                                newInvoiceData.currency,
+                              );
 
                       return (
                         <div key={`additional-${idx}`} className="flex items-center justify-between gap-4">
@@ -549,13 +560,16 @@ const ViewInvoiceDialog: React.FC<ViewInvoiceDialogProps> = ({
                         <span className="text-sm text-gray-500 line-through">
                           {formatCurrency(
                             newInvoiceData.totalBeforePromo,
-                            "IDR",
+                            newInvoiceData.currency,
                           )}
                         </span>
                       </div>
                     )}
                   <p className="text-xl font-bold text-gray-900 sm:text-2xl">
-                    {formatCurrency(newInvoiceData.totalPrice, "IDR")}
+                    {formatCurrency(
+                      newInvoiceData.totalPrice,
+                      newInvoiceData.currency,
+                    )}
                   </p>
                 </div>
               </div>

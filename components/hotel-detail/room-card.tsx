@@ -38,6 +38,12 @@ export default function RoomCard({ room }: { room: RoomType }) {
     additionalServices: typeof room.additional;
     otherPreferences: NonNullable<typeof room.other_preferences>;
     isBreakfast: boolean;
+    roomOption: { 
+      label: string; 
+      price: number; 
+      prices?: Record<string, number>;
+      promo?: typeof room.promos[0];
+    };
     additionalNotes?: string;
   } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<number>(0);
@@ -156,12 +162,18 @@ export default function RoomCard({ room }: { room: RoomType }) {
         
         // Prepare summary data for dialog before resetting form
         const isBreakfast = selectedRoom === room.with_breakfast.id;
+        const selectedPriceOption = isBreakfast ? room.with_breakfast : room.without_breakfast;
         const selectedAdditionalServices = room.additional.filter((add) =>
           selectedAdditionals.includes(String(add.id))
         );
         const selectedOtherPrefs = room.other_preferences?.filter((pref) =>
           selectedOtherPreferences.includes(pref.id)
         ) || [];
+
+        // Get the promo object if applicable
+        const selectedPromoObj = room.promos?.find(
+          (p) => String(p.promo_id) === selectedPromo,
+        );
 
         // Store summary data before resetting
         setSummaryData({
@@ -173,6 +185,12 @@ export default function RoomCard({ room }: { room: RoomType }) {
           additionalServices: selectedAdditionalServices,
           otherPreferences: selectedOtherPrefs || [],
           isBreakfast,
+          roomOption: {
+            label: isBreakfast ? "With Breakfast" : "Without Breakfast",
+            price: selectedPriceOption.price,
+            prices: selectedPriceOption.prices,
+            promo: selectedPromoObj,
+          },
           additionalNotes: additionalNotes.trim() || undefined,
         });
 
@@ -190,8 +208,8 @@ export default function RoomCard({ room }: { room: RoomType }) {
     { icon: "Square", text: `${room.room_size} sqm` },
     { icon: "Users", text: `${room.max_occupancy} guests` },
     {
-      icon: room.is_smoking_room ? "CigaretteOff" : "Cigarette",
-      text: room.is_smoking_room ? "Non Smoking" : "Smoking",
+      icon: room.is_smoking_room ? "Cigarette" : "CigaretteOff",
+      text: room.is_smoking_room ? "Smoking" : "Non Smoking",
     },
   ];
 

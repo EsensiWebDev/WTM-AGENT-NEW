@@ -1,6 +1,10 @@
 "use client";
 
 import { PriceOption, Promo } from "@/app/(protected)/hotel/[id]/types";
+import { formatCurrency } from "@/lib/format";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
+import { getPriceForCurrency } from "@/lib/price-utils";
+import { useSearchParams } from "next/navigation";
 
 interface RoomOptionItemProps {
   option: PriceOption;
@@ -21,14 +25,42 @@ function RoomOptionItem({
   promo,
   isWithBreakfast = false,
 }: RoomOptionItemProps) {
+  const searchParams = useSearchParams();
+  const agentCurrency = useAgentCurrency();
+  const selectedCurrency = searchParams.get("currency") || agentCurrency;
+
+  // Determine base price from multi-currency map when available
+  const getBasePriceForCurrency = () => {
+    return getPriceForCurrency(option.prices, option.price, selectedCurrency);
+  };
+
   // Determine which price to display based on promo
   const getCurrentPrice = () => {
-    if (!promo) return option.price;
+    if (!promo) return getBasePriceForCurrency();
 
-    if (isWithBreakfast) {
-      return promo.price_with_breakfast ?? option.price;
+    // For fixed price promos, use the multi-currency prices from detail
+    if (promo.promo_type_id === 2 && promo.detail?.prices) {
+      const promoPrice = getPriceForCurrency(
+        promo.detail.prices,
+        promo.detail.fixed_price || 0,
+        selectedCurrency
+      );
+      if (promoPrice > 0) {
+        return promoPrice;
+      }
     }
-    return promo.price_without_breakfast ?? option.price;
+
+    // For discount promos, calculate from base price
+    if (promo.promo_type_id === 1 && promo.detail?.discount_percentage) {
+      const basePrice = getBasePriceForCurrency();
+      return (100 - promo.detail.discount_percentage) / 100 * basePrice;
+    }
+
+    // Fallback to backend-calculated prices (for backward compatibility)
+    if (isWithBreakfast) {
+      return promo.price_with_breakfast ?? getBasePriceForCurrency();
+    }
+    return promo.price_without_breakfast ?? getBasePriceForCurrency();
   };
 
   const currentPrice = getCurrentPrice();
@@ -73,11 +105,13 @@ function RoomOptionItem({
       <div className="text-right">
         {showOriginalPrice && (
           <p className="text-xs text-gray-500 line-through sm:text-sm">
-            <span>Rp {option.price.toLocaleString("id-ID")}</span>
+            <span>
+              {formatCurrency(getBasePriceForCurrency(), selectedCurrency)}
+            </span>
           </p>
         )}
         <p className="text-base font-semibold text-gray-900 sm:text-lg">
-          <span>Rp {currentPrice.toLocaleString("id-ID")}</span>
+          <span>{formatCurrency(currentPrice, selectedCurrency)}</span>
         </p>
       </div>
     </div>

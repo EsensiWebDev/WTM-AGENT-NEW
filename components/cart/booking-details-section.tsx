@@ -15,6 +15,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,7 +34,7 @@ import {
 import { IconMoon } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Clock, Loader2, Plus, Trash2 } from "lucide-react";
+import { Clock, Loader2, Plus, Trash2, Pencil } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -33,6 +43,8 @@ import { formatUrl } from "@/lib/url-utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Textarea } from "../ui/textarea";
+import { formatCurrency } from "@/lib/format";
+import { getPriceForCurrency } from "@/lib/price-utils";
 
 interface BookingDetailsSectionProps {
   cartData: Awaited<ReturnType<typeof fetchCart>>["data"];
@@ -128,6 +140,9 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   // Determine if we should show placeholder
   const shouldShowPlaceholder = !bookingDetails.photo || imageError;
 
+  // Currency snapshot for this cart item (falls back to IDR)
+  const currency = bookingDetails.currency || "IDR";
+
   const onRemove = async (id: string) => {
     startTransition(async () => {
       try {
@@ -194,14 +209,6 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
         toast.error("Failed to select guest. Please try again.");
       }
     });
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   // Calculate the number of nights between check_in_date and check_out_date
@@ -346,9 +353,146 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
 
           <div className="flex text-sm md:flex-col md:justify-start">
             <span className="text-right text-sm font-medium">
-              {formatPrice(bookingDetails.price)}
+              {formatCurrency(bookingDetails.price, currency)}
             </span>
           </div>
+
+          {/* Promotion Applied */}
+          {(() => {
+            const promo = bookingDetails.promo;
+            if (!promo) return false;
+            
+            // Check if promo has any meaningful data
+            const hasPromoCode = (promo.promo_code && promo.promo_code.trim() !== "") || 
+                                 (promo.code && promo.code.trim() !== "");
+            const hasPromoType = promo.type && promo.type.trim() !== "";
+            const hasDiscount = promo.discount_percent && promo.discount_percent > 0;
+            const hasFixedPrice = promo.fixed_price && promo.fixed_price > 0;
+            const hasUpgrade = promo.upgraded_to_id && promo.upgraded_to_id > 0;
+            const hasBenefit = ((promo as any).benefit_note && (promo as any).benefit_note.trim() !== "") ||
+                               (promo.benefit && promo.benefit.trim() !== "");
+            
+            return hasPromoCode || hasPromoType || hasDiscount || hasFixedPrice || hasUpgrade || hasBenefit;
+          })() && (
+            <>
+              <span className="text-muted-foreground col-span-1 text-xs md:col-span-3 mt-2">
+                Promotion Applied
+              </span>
+              <div className="col-span-1 md:col-span-2">
+                <div className="rounded-md bg-blue-50 p-2 text-xs">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-blue-900">
+                      Promo: {bookingDetails.promo.promo_code || bookingDetails.promo.code || "N/A"}
+                    </span>
+                    {bookingDetails.promo.type && (
+                      <span className="rounded bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800">
+                        {bookingDetails.promo.type}
+                      </span>
+                    )}
+                  </div>
+                  {bookingDetails.promo.description && 
+                   bookingDetails.promo.description.trim() !== "" && (
+                    <p className="text-blue-700 mb-1">{bookingDetails.promo.description}</p>
+                  )}
+                  {(() => {
+                    const promo = bookingDetails.promo;
+                    if (!promo) return null;
+
+                    // Fixed Price promo type (ID 2)
+                    if (promo.promo_type_id === 2) {
+                      if (promo.prices && Object.keys(promo.prices).length > 0) {
+                        const price = getPriceForCurrency(
+                          promo.prices,
+                          promo.fixed_price || 0,
+                          currency
+                        );
+                        if (price > 0) {
+                          return (
+                            <p className="font-medium text-green-700">
+                              Fixed price: {formatCurrency(price, currency)}
+                            </p>
+                          );
+                        }
+                      } else if (promo.fixed_price && promo.fixed_price > 0) {
+                        return (
+                          <p className="font-medium text-green-700">
+                            Fixed price: {formatCurrency(promo.fixed_price, currency)}
+                          </p>
+                        );
+                      }
+                    }
+
+                    // Discount promo type (ID 1)
+                    if (promo.promo_type_id === 1 && promo.discount_percent && promo.discount_percent > 0) {
+                      return (
+                        <p className="font-medium text-green-700">
+                          {promo.discount_percent}% discount
+                        </p>
+                      );
+                    }
+
+                    // Room Upgrade promo type (ID 3)
+                    if (promo.promo_type_id === 3 && promo.upgraded_to_id && promo.upgraded_to_id > 0) {
+                      return (
+                        <p className="font-medium text-green-700">
+                          Room will be automatically upgraded
+                        </p>
+                      );
+                    }
+
+                    // Benefit promo type (ID 4)
+                    if (promo.promo_type_id === 4) {
+                      const benefitText = (promo as any).benefit_note || promo.benefit;
+                      if (benefitText && benefitText.trim() !== "") {
+                        return (
+                          <p className="font-medium text-green-700">{benefitText}</p>
+                        );
+                      }
+                    }
+
+                    // Fallback for backward compatibility (when promo_type_id is not available)
+                    if (promo.fixed_price && promo.fixed_price > 0) {
+                      return (
+                        <p className="font-medium text-green-700">
+                          Fixed price: {formatCurrency(promo.fixed_price, currency)}
+                        </p>
+                      );
+                    }
+
+                    if (promo.discount_percent && promo.discount_percent > 0) {
+                      return (
+                        <p className="font-medium text-green-700">
+                          {promo.discount_percent}% discount
+                        </p>
+                      );
+                    }
+
+                    if (promo.upgraded_to_id && promo.upgraded_to_id > 0) {
+                      return (
+                        <p className="font-medium text-green-700">
+                          Room will be automatically upgraded
+                        </p>
+                      );
+                    }
+
+                    const benefitText = (promo as any).benefit_note || promo.benefit;
+                    if (benefitText && benefitText.trim() !== "") {
+                      return (
+                        <p className="font-medium text-green-700">{benefitText}</p>
+                      );
+                    }
+
+                    return null;
+                  })()}
+                </div>
+              </div>
+              <div className="flex text-sm md:flex-col md:justify-center">
+                <span className="text-right text-sm font-medium text-gray-400">
+                  {/* Intentionally left blank */}
+                </span>
+              </div>
+            </>
+          )}
 
           {/* Bed Type */}
           {(bookingDetails.bed_type || (bookingDetails.bed_types && bookingDetails.bed_types.length > 0)) && (
@@ -380,14 +524,17 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
                 const displayValue =
                   category === "pax" && additional.pax !== undefined
                     ? `${additional.pax} ${additional.pax === 1 ? "Pax" : "Pax"}`
-                    : formatPrice(additional.price || 0);
+                    : formatCurrency(additional.price || 0, currency);
 
                 return (
                   <React.Fragment
                     key={`${bookingDetails.room_type_name}-additional-${idx}`}
                   >
                     <div className="col-span-1 md:col-span-2">
-                      <span className="text-sm font-medium">{additional.name}</span>
+                      <span className="text-sm font-medium">
+                        <span className="mr-2 text-gray-500">•</span>
+                        {additional.name}
+                      </span>
                     </div>
                     <div className="flex text-sm md:flex-col md:justify-center">
                       <span className="text-right text-sm font-medium">
@@ -412,7 +559,10 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
                     key={`${bookingDetails.room_type_name}-preference-${idx}`}
                   >
                     <div className="col-span-1 md:col-span-2">
-                      <span className="text-sm font-medium">{preference}</span>
+                      <span className="text-sm font-medium">
+                        <span className="mr-2 text-gray-500">•</span>
+                        {preference}
+                      </span>
                     </div>
                     <div className="flex text-sm md:flex-col md:justify-center">
                       <span className="text-right text-sm font-medium text-gray-400">
@@ -444,11 +594,12 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
               <div className="flex items-center justify-end text-sm md:flex-col md:justify-center">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="h-8 px-3 text-xs font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
                   onClick={() => setIsEditingNotes(true)}
                 >
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" />
                   Update Notes
                 </Button>
               </div>
@@ -556,7 +707,7 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
                 1 room(s), {nights} night(s)
               </div>
               <div className="text-lg font-bold text-gray-800">
-                {formatPrice(bookingDetails.total_price)}
+                {formatCurrency(bookingDetails.total_price, currency)}
               </div>
             </div>
           </div>
@@ -575,6 +726,53 @@ const BookingGrandTotalCard = ({
 }) => {
   const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Validate that all booking details have guests selected
+  const validateGuests = (): { isValid: boolean; missingGuests: string[] } => {
+    const missingGuests: string[] = [];
+    
+    if (!cartData.detail) {
+      return { isValid: false, missingGuests: [] };
+    }
+
+    // TypeScript sees detail as a tuple, but at runtime it's an array
+    // Use Array.from to convert tuple to array for iteration
+    const details = Array.from(cartData.detail);
+    
+    if (details.length === 0) {
+      return { isValid: false, missingGuests: [] };
+    }
+
+    details.forEach((detail) => {
+      if (!detail.guest || detail.guest.trim() === "" || detail.guest === "Select Guest") {
+        missingGuests.push(`${detail.hotel_name} - ${detail.room_type_name}`);
+      }
+    });
+
+    return {
+      isValid: missingGuests.length === 0,
+      missingGuests,
+    };
+  };
+
+  const handleCheckoutClick = () => {
+    const validation = validateGuests();
+    
+    if (!validation.isValid) {
+      const missingList = validation.missingGuests.join(", ");
+      toast.error(
+        `Please select a guest for all bookings before checkout. Missing guests for: ${missingList}`,
+        {
+          duration: 5000,
+        }
+      );
+      return;
+    }
+
+    // All guests are selected, show confirmation dialog
+    setShowConfirmDialog(true);
+  };
 
   const onCheckOut = async () => {
     startTransition(async () => {
@@ -593,17 +791,13 @@ const BookingGrandTotalCard = ({
         }
       } catch (error) {
         toast.error("Failed to check out cart. Please try again.");
+      } finally {
+        setShowConfirmDialog(false);
       }
     });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const currency = cartData.currency || "IDR";
 
   return (
     <div className="md:col-span-2 md:col-end-6">
@@ -631,7 +825,7 @@ const BookingGrandTotalCard = ({
                 className="flex text-sm md:flex-col md:justify-start"
               >
                 <span className="text-right font-medium">
-                  {formatPrice(detail.total_price)}
+                  {formatCurrency(detail.total_price, detail.currency || currency)}
                 </span>
               </div>
             </React.Fragment>
@@ -643,13 +837,13 @@ const BookingGrandTotalCard = ({
           </div>
           <div className="flex h-full md:flex-col md:justify-end">
             <span className="text-right text-lg font-bold">
-              {formatPrice(cartData.grand_total)}
+              {formatCurrency(cartData.grand_total, currency)}
             </span>
           </div>
         </CardFooter>
       </Card>
       <div className="mt-4 flex justify-end">
-        <Button onClick={onCheckOut} disabled={isPending}>
+        <Button onClick={handleCheckoutClick} disabled={isPending}>
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -660,6 +854,36 @@ const BookingGrandTotalCard = ({
           )}
         </Button>
       </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Checkout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to proceed with checkout? This action will
+              finalize your booking and cannot be undone. Please review all
+              details before confirming.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onCheckOut}
+              disabled={isPending}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Checkout"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

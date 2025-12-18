@@ -41,10 +41,32 @@ export const getHotels = async ({
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
   const url = `/hotels/agent${queryString ? `?${queryString}` : ""}`;
+  
+  console.log("[getHotels] API Request:", {
+    url,
+    queryString,
+    searchParamsWithDefaults,
+    hasAccessToken: !!accessToken,
+  });
+  
   const apiResponse = await apiCall<HotelListData>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+  });
+
+  console.log("[getHotels] API Response:", {
+    status: apiResponse.status,
+    message: apiResponse.message,
+    hotelsCount: apiResponse.data?.hotels?.length || 0,
+    totalHotels: apiResponse.data?.total || 0,
+    pagination: apiResponse.data?.pagination,
+    sampleHotel: apiResponse.data?.hotels?.[0] ? {
+      id: apiResponse.data.hotels[0].id,
+      name: apiResponse.data.hotels[0].name,
+      min_price: apiResponse.data.hotels[0].min_price,
+      currency: apiResponse.data.hotels[0].currency,
+    } : null,
   });
 
   return apiResponse;

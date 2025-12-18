@@ -34,6 +34,11 @@ export interface InvoiceData {
   description: string;
   total_price: number;
   total_before_promo?: number;
+  /**
+   * Optional currency code for this invoice (e.g. "IDR", "USD").
+   * When not provided, the UI will default to "IDR".
+   */
+  currency?: string;
   invoice_number: string;
   invoice_date: string;
   receipt: string;
@@ -53,6 +58,14 @@ export interface SubBookingDetail {
   guest_name: string;
   agent_name: string;
   hotel_name: string;
+  room_type_name?: string; // Room type selected
+  is_breakfast: boolean; // Whether breakfast is included
+  bed_type?: string; // Selected bed type
+  room_price?: number; // Room price per night (after promo if any)
+  total_price?: number; // Total price including room and additional services
+  currency?: string; // Currency code for prices
+  check_in_date?: string; // Check-in date
+  check_out_date?: string; // Check-out date
   additional: string[] | null;
   additional_services?: AdditionalServiceDetail[];
   other_preferences?: string[] | null;

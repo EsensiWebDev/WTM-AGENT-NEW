@@ -11,6 +11,11 @@ export type FilterDistricts = string[];
 export interface FilterPricing {
   max_price: number;
   min_price: number;
+  /**
+   * Optional currency code for this price range (e.g. "IDR", "USD").
+   * Falls back to the agent's default currency or "IDR" when not provided.
+   */
+  currency?: string;
 }
 export interface FilterRatings {
   rating: number;
@@ -24,10 +29,20 @@ export interface FilterTotalRooms {
 export interface Hotel {
   address: string;
   id: number;
-  min_price: number;
+  min_price: number; // DEPRECATED: Use prices instead
+  /**
+   * Multi-currency prices keyed by currency code, e.g. {"IDR": 500000, "USD": 200}.
+   * When present, use prices[currency] instead of min_price.
+   */
+  prices?: Record<string, number>;
   name: string;
   photo: string;
   rating: number;
+  /**
+   * Optional currency code for the minimum price shown in the hotel card.
+   * When omitted, the UI will fall back to the selected/display currency.
+   */
+  currency?: string;
 }
 
 export interface HotelListData {

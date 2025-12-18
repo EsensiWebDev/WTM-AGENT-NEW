@@ -12,6 +12,8 @@ import { HomePageProps } from "./types";
 const HomePage = async (props: HomePageProps) => {
   const searchParams = await props.searchParams;
 
+  console.log("[HomePage] Search params received:", JSON.stringify(searchParams, null, 2));
+
   const hotelsPromise = getHotels({
     searchParams,
   });

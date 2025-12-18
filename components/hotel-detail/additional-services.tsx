@@ -2,6 +2,10 @@
 
 import { AdditionalService } from "@/app/(protected)/hotel/[id]/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatCurrency } from "@/lib/format";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
+import { getPriceForCurrency } from "@/lib/price-utils";
+import { useSearchParams } from "next/navigation";
 
 interface AdditionalServicesProps {
   additionals: AdditionalService[];
@@ -14,6 +18,10 @@ export function AdditionalServices({
   selectedAdditionals,
   onAdditionalChange,
 }: AdditionalServicesProps) {
+  const searchParams = useSearchParams();
+  const agentCurrency = useAgentCurrency();
+  const selectedCurrency = searchParams.get("currency") || agentCurrency;
+
   return (
     <div className="mt-4 sm:mt-6">
       <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:mb-3 sm:text-sm">
@@ -52,9 +60,12 @@ export function AdditionalServices({
                     <span className="ml-1.5 text-xs text-gray-500">(Required)</span>
                   )}
                 </label>
-                {category === "price" && service.price > 0 && (
+                {category === "price" && (service.price > 0 || service.prices) && (
                   <span className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm whitespace-nowrap">
-                    Rp {service.price.toLocaleString("id-ID")}
+                    {formatCurrency(
+                      getPriceForCurrency(service.prices, service.price, selectedCurrency),
+                      selectedCurrency,
+                    )}
                   </span>
                 )}
                 {category === "pax" && service.pax !== undefined && (

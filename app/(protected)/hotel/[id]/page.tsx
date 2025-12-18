@@ -33,6 +33,7 @@ export default async function HotelDetailPage({
           location={`${hotel.sub_district}, ${hotel.city} - ${hotel.province}`}
           rating={hotel.rating}
           price={hotel.room_type?.[0].without_breakfast.price || 0}
+          prices={hotel.room_type?.[0].without_breakfast.prices}
           description={hotel.description}
           facilities={hotel.facilities}
           nearby={hotel.nearby_place}

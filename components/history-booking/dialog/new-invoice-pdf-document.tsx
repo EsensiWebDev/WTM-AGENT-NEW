@@ -54,6 +54,10 @@ export interface NewInvoiceData {
     promo_code?: string;
     [key: string]: any;
   };
+  /**
+   * Currency code for all monetary values in this invoice (e.g. "IDR", "USD").
+   */
+  currency: string;
 }
 
 // Main PDF Document Component for New Invoice Format
@@ -326,7 +330,7 @@ export const NewInvoicePDFDocument: React.FC<{
               }}
             >
               <Text style={{ fontSize: 10 }}>
-                {formatCurrency(item.price, "IDR")}
+                {formatCurrency(item.price, invoice.currency)}
               </Text>
             </View>
             <View style={{ width: "16%", padding: 8, alignItems: "flex-end" }}>
@@ -342,15 +346,15 @@ export const NewInvoicePDFDocument: React.FC<{
                       marginBottom: 2,
                     }}
                   >
-                    {formatCurrency(item.total_before_promo, "IDR")}
+                    {formatCurrency(item.total_before_promo, invoice.currency)}
                   </Text>
                   <Text style={{ fontSize: 10, fontWeight: "bold" }}>
-                    {formatCurrency(item.total, "IDR")}
+                    {formatCurrency(item.total, invoice.currency)}
                   </Text>
                 </View>
               ) : (
                 <Text style={{ fontSize: 10, fontWeight: "bold" }}>
-                  {formatCurrency(item.total, "IDR")}
+                  {formatCurrency(item.total, invoice.currency)}
                 </Text>
               )}
             </View>
@@ -418,12 +422,15 @@ export const NewInvoicePDFDocument: React.FC<{
                           textDecoration: "line-through",
                         }}
                       >
-                        {formatCurrency(invoice.totalBeforePromo, "IDR")}
+                        {formatCurrency(
+                          invoice.totalBeforePromo,
+                          invoice.currency,
+                        )}
                       </Text>
                     </View>
                   )}
                 <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                  {formatCurrency(invoice.totalPrice, "IDR")}
+                  {formatCurrency(invoice.totalPrice, invoice.currency)}
                 </Text>
               </View>
             </View>
