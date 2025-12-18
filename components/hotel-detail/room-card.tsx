@@ -8,7 +8,7 @@ import { RoomType } from "@/app/(protected)/hotel/[id]/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Minus, Plus, Shield } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -72,6 +72,30 @@ export default function RoomCard({ room }: { room: RoomType }) {
 
   // Generate unique radio group name for this room type
   const radioGroupName = `room-option-${room.name.toLowerCase().replace(/\s+/g, "-")}`;
+
+  // Auto-select required additional services on mount
+  useEffect(() => {
+    if (room.additional && room.additional.length > 0) {
+      const requiredServiceIds = room.additional
+        .filter((service) => service.is_required)
+        .map((service) => String(service.id));
+      
+      if (requiredServiceIds.length > 0) {
+        setSelectedAdditionals((prev) => {
+          // Merge with existing selections, avoiding duplicates
+          const merged = [...new Set([...prev, ...requiredServiceIds])];
+          return merged;
+        });
+      }
+    }
+  }, [room.additional]);
+
+  // Auto-select bed type if only one option available
+  useEffect(() => {
+    if (room.bed_types && room.bed_types.length === 1 && !selectedBedType) {
+      setSelectedBedType(room.bed_types[0]);
+    }
+  }, [room.bed_types, selectedBedType]);
 
   // Function to reset form to default values
   const resetForm = () => {

@@ -13,17 +13,23 @@ import { useQueryClient } from "@tanstack/react-query";
 interface ContactDetailsSectionProps {
   guests: (string | GuestPayload)[] | null;
   cart_id: number;
+  hasBookings?: boolean;
 }
 
 export function ContactDetailsSection({
   guests,
   cart_id,
+  hasBookings = false,
 }: ContactDetailsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isPending, startTransition] = useTransition();
   const queryClient = useQueryClient();
 
   const openGuestDialog = () => {
+    if (!hasBookings) {
+      toast.error("Please add a booking to your cart before adding guests.");
+      return;
+    }
     setIsDialogOpen(true);
   };
 
@@ -39,11 +45,11 @@ export function ContactDetailsSection({
           toast.success(response.message || "Guest(s) added successfully!");
         } else {
           toast.error(
-            response.message || "Failed to add guest. Please try again.",
+            response.message || "Failed to add guest(s). Please try again.",
           );
         }
       } catch (error) {
-        toast.error("Failed to add guest. Please try again.");
+        toast.error("Failed to add guest(s). Please try again.");
       }
     });
   };
@@ -93,7 +99,12 @@ export function ContactDetailsSection({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Contact Details</h2>
-        <Button onClick={openGuestDialog} size="sm">
+        <Button 
+          onClick={openGuestDialog} 
+          size="sm"
+          disabled={!hasBookings}
+          title={!hasBookings ? "Please add a booking to your cart first" : undefined}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Guest
         </Button>

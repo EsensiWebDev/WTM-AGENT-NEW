@@ -176,15 +176,31 @@ export function AddToCartConfirmationDialog({
             <div className="mt-4">
               <h4 className="font-medium">Additional Services</h4>
               <div className="mt-2 space-y-2">
-                {selectedServices.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex justify-between text-sm"
-                  >
-                    <span>{service.name}</span>
-                    <span>Rp {service.price.toLocaleString("id-ID")}</span>
-                  </div>
-                ))}
+                {selectedServices.map((service) => {
+                  // Backward compatibility: default to "price" if category is missing
+                  const category = service.category || "price";
+                  
+                  return (
+                    <div
+                      key={service.id}
+                      className="flex justify-between text-sm"
+                    >
+                      <span>
+                        {service.name}
+                        {service.is_required && (
+                          <span className="ml-1 text-xs text-red-500">*</span>
+                        )}
+                      </span>
+                      <span>
+                        {category === "price" && service.price !== undefined
+                          ? `Rp ${service.price.toLocaleString("id-ID")}`
+                          : category === "pax" && service.pax !== undefined
+                            ? `${service.pax} ${service.pax === 1 ? "person" : "people"}`
+                            : "N/A"}
+                      </span>
+                    </div>
+                  );
+                })}
                 <div className="flex justify-between font-medium">
                   <span>Services Total:</span>
                   <span>Rp {servicesTotal.toLocaleString("id-ID")}</span>

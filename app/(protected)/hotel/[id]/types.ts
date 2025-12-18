@@ -61,6 +61,8 @@ export interface PriceOption {
   is_show: boolean;
 }
 
+export type AdditionalServiceCategory = "price" | "pax";
+
 export interface AdditionalService {
   id: number;
   name: string;

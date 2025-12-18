@@ -212,15 +212,17 @@ export const addGuest = async (input: {
     if (response.status !== 200) {
       return {
         success: false,
-        message: response.message || "Failed to add guest",
+        message: response.message || "Failed to add guest(s)",
       };
     }
 
     revalidatePath("/cart", "layout");
 
+    const guestCount = Array.isArray(guests) ? guests.length : 0;
     return {
       success: true,
-      message: response.message || "Guest has been successfully added",
+      message: response.message || 
+        `${guestCount} guest${guestCount > 1 ? "s have" : " has"} been successfully added`,
     };
   } catch (error) {
     console.error("Error adding guest:", error);
@@ -235,7 +237,7 @@ export const addGuest = async (input: {
 
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to add guest",
+      message: error instanceof Error ? error.message : "Failed to add guest(s)",
     };
   }
 };

@@ -344,6 +344,11 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
             <div className="leading-tight">
               <div className="text-sm leading-tight font-medium">
                 {bookingDetails.room_type_name}
+                {bookingDetails.bed_type && (
+                  <span className="ml-2 text-xs font-normal text-gray-600">
+                    ({bookingDetails.bed_type})
+                  </span>
+                )}
               </div>
               <div className="text-xs leading-tight font-extralight">
                 {bookingDetails.is_breakfast ? "Breakfast Included" : ""}
@@ -815,6 +820,7 @@ const BookingGrandTotalCard = ({
                   </div>
                   <div className="text-xs leading-tight font-extralight">
                     {detail.room_type_name}
+                    {detail.bed_type && ` - ${detail.bed_type}`}
                     {detail.additional?.length > 0 &&
                       ` + ${detail.additional.map((s) => s.name).join(" + ")}`}
                   </div>
