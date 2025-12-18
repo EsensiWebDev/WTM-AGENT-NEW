@@ -22,13 +22,37 @@ export function AdditionalServices({
   const agentCurrency = useAgentCurrency();
   const selectedCurrency = searchParams.get("currency") || agentCurrency;
 
+  // Filter additional services: only show price-based services that have prices in selected currency
+  // Pax-based services are always shown (no currency dependency)
+  const filteredAdditionals = additionals.filter((service) => {
+    const category = service.category || "price";
+    
+    // Always show pax-based services
+    if (category === "pax") {
+      return true;
+    }
+    
+    // For price-based services, check if prices object contains selected currency
+    if (category === "price") {
+      // If prices object exists and has the selected currency, include it
+      if (service.prices && typeof service.prices === 'object' && selectedCurrency in service.prices) {
+        return true;
+      }
+      // Otherwise, exclude it (defensive filtering - backend should have already filtered)
+      return false;
+    }
+    
+    // Default: include other categories
+    return true;
+  });
+
   return (
     <div className="mt-4 sm:mt-6">
       <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:mb-3 sm:text-sm">
         Additional Services
       </h4>
       <div className="space-y-2.5 sm:space-y-3">
-        {additionals.map((service) => {
+        {filteredAdditionals.map((service) => {
           const serviceId = String(service.id);
           const isSelected = selectedAdditionals.includes(serviceId);
           const isRequired = service.is_required === true;
