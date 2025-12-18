@@ -6,7 +6,7 @@ import {
 } from "@/app/(protected)/hotel/[id]/actions";
 import { RoomType } from "@/app/(protected)/hotel/[id]/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Minus, Plus } from "lucide-react";
+import { ChevronRight, Minus, Plus, Shield } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -117,10 +117,45 @@ export default function RoomCard({ room }: { room: RoomType }) {
     });
   };
 
+  // Handle quantity increment with booking limit validation
+  const handleIncrementQuantity = () => {
+    const bookingLimit = room.booking_limit_per_booking;
+    
+    // If there's a booking limit, check if incrementing would exceed it
+    if (bookingLimit !== null && bookingLimit !== undefined && bookingLimit > 0) {
+      if (roomQuantity >= bookingLimit) {
+        toast.error(
+          `Booking limit reached: Maximum ${bookingLimit} room${bookingLimit > 1 ? 's' : ''} allowed per booking for this room type.`,
+          { duration: 4000 }
+        );
+        return;
+      }
+    }
+    
+    setRoomQuantity(roomQuantity + 1);
+  };
+
+  // Handle quantity decrement
+  const handleDecrementQuantity = () => {
+    setRoomQuantity(Math.max(1, roomQuantity - 1));
+  };
+
   const handleAddToCart = async () => {
     if (!from || !to) {
       toast.error("Please select a check-in and check-out date.");
       return;
+    }
+
+    // Validate booking limit (client-side check - backend will also validate)
+    const bookingLimit = room.booking_limit_per_booking;
+    if (bookingLimit !== null && bookingLimit !== undefined && bookingLimit > 0) {
+      if (roomQuantity > bookingLimit) {
+        toast.error(
+          `Booking limit exceeded: Maximum ${bookingLimit} room${bookingLimit > 1 ? 's' : ''} allowed per booking for ${room.name}.`,
+          { duration: 5000 }
+        );
+        return;
+      }
     }
 
     // Get selected additional services with names
@@ -299,31 +334,49 @@ export default function RoomCard({ room }: { room: RoomType }) {
             </div>
 
             <div className="mt-4 flex flex-col space-y-4 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium">Room</span>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setRoomQuantity(Math.max(1, roomQuantity - 1))
-                    }
-                    className="h-8 w-8 p-0"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-8 text-center text-sm">
-                    {roomQuantity}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRoomQuantity(roomQuantity + 1)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+              <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium">Room</span>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDecrementQuantity}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center text-sm">
+                      {roomQuantity}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleIncrementQuantity}
+                      disabled={
+                        room.booking_limit_per_booking !== null &&
+                        room.booking_limit_per_booking !== undefined &&
+                        room.booking_limit_per_booking > 0 &&
+                        roomQuantity >= room.booking_limit_per_booking
+                      }
+                      className="h-8 w-8 p-0 disabled:opacity-50"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
+                {/* Booking Limit Display */}
+                {room.booking_limit_per_booking !== null &&
+                  room.booking_limit_per_booking !== undefined &&
+                  room.booking_limit_per_booking > 0 && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>
+                        Max {room.booking_limit_per_booking} room
+                        {room.booking_limit_per_booking > 1 ? "s" : ""} per booking
+                      </span>
+                    </div>
+                  )}
               </div>
 
               <Button

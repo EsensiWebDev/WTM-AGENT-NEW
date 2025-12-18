@@ -41,6 +41,7 @@ export interface RoomType {
   description: string;
   promos: Promo[];
   photos: string[];
+  booking_limit_per_booking?: number | null; // Maximum number of rooms that can be booked per booking (null = no limit)
 }
 
 export interface OtherPreference {
