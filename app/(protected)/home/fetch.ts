@@ -15,17 +15,19 @@ export const getHotels = async ({
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
 
-  // Get today and tomorrow dates
+  // Get tomorrow and day after tomorrow dates (users can't book for today)
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
   const searchParamsWithDefaults: SearchParams = {
     ...searchParams,
     limit: searchParams.limit || "9",
     page: searchParams.page || "1",
-    from: searchParams.from || format(today, "yyyy-MM-dd"),
-    to: searchParams.to || format(tomorrow, "yyyy-MM-dd"),
+    from: searchParams.from || format(tomorrow, "yyyy-MM-dd"),
+    to: searchParams.to || format(dayAfterTomorrow, "yyyy-MM-dd"),
     total_rooms: searchParams.total_rooms || "1",
     total_guests:
       String(
@@ -39,10 +41,32 @@ export const getHotels = async ({
 
   const queryString = buildQueryParams(searchParamsWithDefaults);
   const url = `/hotels/agent${queryString ? `?${queryString}` : ""}`;
+  
+  console.log("[getHotels] API Request:", {
+    url,
+    queryString,
+    searchParamsWithDefaults,
+    hasAccessToken: !!accessToken,
+  });
+  
   const apiResponse = await apiCall<HotelListData>(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+  });
+
+  console.log("[getHotels] API Response:", {
+    status: apiResponse.status,
+    message: apiResponse.message,
+    hotelsCount: apiResponse.data?.hotels?.length || 0,
+    totalHotels: apiResponse.data?.total || 0,
+    pagination: apiResponse.data?.pagination,
+    sampleHotel: apiResponse.data?.hotels?.[0] ? {
+      id: apiResponse.data.hotels[0].id,
+      name: apiResponse.data.hotels[0].name,
+      min_price: apiResponse.data.hotels[0].min_price,
+      currency: apiResponse.data.hotels[0].currency,
+    } : null,
   });
 
   return apiResponse;

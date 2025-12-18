@@ -37,14 +37,26 @@ export interface RoomType {
   bed_types: string[];
   is_smoking_room: boolean;
   additional: AdditionalService[];
+  other_preferences?: OtherPreference[];
   description: string;
   promos: Promo[];
   photos: string[];
+  booking_limit_per_booking?: number | null; // Maximum number of rooms that can be booked per booking (null = no limit)
+}
+
+export interface OtherPreference {
+  id: number;
+  name: string;
 }
 
 export interface PriceOption {
   id: number;
   price: number;
+  /**
+   * Multi-currency prices keyed by currency code, e.g. {"IDR": 1600000, "USD": 100}.
+   * This mirrors the backend `Prices` field and is preferred over `price` when present.
+   */
+  prices?: Record<string, number>;
   pax: number;
   is_show: boolean;
 }
@@ -54,10 +66,15 @@ export type AdditionalServiceCategory = "price" | "pax";
 export interface AdditionalService {
   id: number;
   name: string;
-  category: AdditionalServiceCategory;
-  price?: number; // Only set when category="price"
-  pax?: number; // Only set when category="pax"
-  is_required: boolean;
+  price: number;
+  /**
+   * Multi-currency prices keyed by currency code, mirroring the backend `Prices` field.
+   * When present, the UI will use this map to display the price in the selected currency.
+   */
+  prices?: Record<string, number>;
+  category?: "price" | "pax";
+  pax?: number;
+  is_required?: boolean;
 }
 
 export interface Promo {
@@ -68,4 +85,13 @@ export interface Promo {
   price_without_breakfast: number;
   total_nights: number;
   other_notes: string;
+  promo_type_id?: number;
+  promo_type_name?: string;
+  detail?: {
+    discount_percentage?: number;
+    fixed_price?: number; // DEPRECATED: Use prices instead
+    prices?: Record<string, number>; // Multi-currency prices
+    upgraded_to_id?: number;
+    benefit_note?: string;
+  };
 }

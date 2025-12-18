@@ -18,6 +18,7 @@ export interface AccountProfile {
   photo_profile: string;
   status: string;
   username: string;
+  currency?: string;
 }
 
 export interface AccountSettingResponse {

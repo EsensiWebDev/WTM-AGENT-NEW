@@ -2,6 +2,10 @@
 
 import { AdditionalService } from "@/app/(protected)/hotel/[id]/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatCurrency } from "@/lib/format";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
+import { getPriceForCurrency } from "@/lib/price-utils";
+import { useSearchParams } from "next/navigation";
 
 interface AdditionalServicesProps {
   additionals: AdditionalService[];
@@ -14,54 +18,62 @@ export function AdditionalServices({
   selectedAdditionals,
   onAdditionalChange,
 }: AdditionalServicesProps) {
+  const searchParams = useSearchParams();
+  const agentCurrency = useAgentCurrency();
+  const selectedCurrency = searchParams.get("currency") || agentCurrency;
+
   return (
     <div className="mt-4 sm:mt-6">
       <h4 className="mb-2 text-xs font-semibold text-gray-900 sm:mb-3 sm:text-sm">
         Additional Services
       </h4>
-      <div className="space-y-2 sm:space-y-3">
+      <div className="space-y-2.5 sm:space-y-3">
         {additionals.map((service) => {
           const serviceId = String(service.id);
           const isSelected = selectedAdditionals.includes(serviceId);
-          
-          // Backward compatibility: default to "price" if category is missing
+          const isRequired = service.is_required === true;
           const category = service.category || "price";
-          
-          // Determine if service is required (backward compatibility: default to false)
-          const isRequired = service.is_required ?? false;
 
           return (
             <div
               key={serviceId}
-              className="flex items-center space-x-2 sm:space-x-3"
+              className="flex items-center gap-3"
             >
               <Checkbox
                 id={serviceId}
-                checked={isSelected || isRequired}
+                checked={isSelected}
                 disabled={isRequired}
                 onCheckedChange={(checked) =>
                   onAdditionalChange(serviceId, Boolean(checked))
                 }
+                className="shrink-0 mt-0.5"
               />
-              <label
-                htmlFor={serviceId}
-                className="text-xs font-medium text-gray-900 sm:text-sm"
-              >
-                {service.name}
-                {isRequired && (
-                  <span className="ml-1 text-xs text-red-500">*</span>
+              <div className="flex flex-1 items-center justify-between gap-2 min-w-0">
+                <label
+                  htmlFor={serviceId}
+                  className={`text-xs font-medium sm:text-sm cursor-pointer ${
+                    isRequired ? "text-gray-600" : "text-gray-900"
+                  }`}
+                >
+                  {service.name}
+                  {isRequired && (
+                    <span className="ml-1.5 text-xs text-gray-500">(Required)</span>
+                  )}
+                </label>
+                {category === "price" && (service.price > 0 || service.prices) && (
+                  <span className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm whitespace-nowrap">
+                    {formatCurrency(
+                      getPriceForCurrency(service.prices, service.price, selectedCurrency),
+                      selectedCurrency,
+                    )}
+                  </span>
                 )}
-              </label>
-              {category === "price" && service.price !== undefined && service.price > 0 && (
-                <span className="text-xs text-gray-600 sm:text-sm">
-                  Rp {service.price.toLocaleString("id-ID")}
-                </span>
-              )}
-              {category === "pax" && service.pax !== undefined && service.pax > 0 && (
-                <span className="text-xs text-gray-600 sm:text-sm">
-                  {service.pax} {service.pax === 1 ? "person" : "people"}
-                </span>
-              )}
+                {category === "pax" && service.pax !== undefined && (
+                  <span className="shrink-0 text-xs font-medium text-gray-700 sm:text-sm whitespace-nowrap">
+                    {service.pax} Pax
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}

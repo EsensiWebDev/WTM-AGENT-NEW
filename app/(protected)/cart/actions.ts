@@ -164,48 +164,40 @@ export async function checkoutCart(): Promise<ActionResponse<InvoiceData[]>> {
   }
 }
 
-export const addGuest = async (input: { 
-  cart_id: number; 
-  guest?: string; // For backward compatibility (legacy)
-  guests?: string[]; // For backward compatibility (legacy)
-  guestData?: GuestPayload[]; // New structured format
+export const addGuest = async (input: {
+  cart_id: number;
+  guest?: string;
+  guests?: string[];
+  guestData?: GuestPayload[];
 }) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
-  
-  // Determine which format to use and convert to structured format
-  let guests: GuestPayload[];
-  
+
+  // Convert to structured GuestPayload[] format
+  let guestPayloads: GuestPayload[] = [];
   if (input.guestData) {
-    // New structured format
-    guests = input.guestData;
-  } else {
-    // Legacy format: convert string array to structured format for backward compatibility
-    const legacyGuests = input.guests || (input.guest ? [input.guest] : []);
-    guests = legacyGuests.map((guestName) => {
-      // Parse legacy format "Mr John Doe" or just "John Doe"
-      const honorifics = ["Mr", "Mrs", "Miss"];
-      const parts = guestName.trim().split(" ");
-      
-      if (parts.length > 1 && honorifics.includes(parts[0])) {
-        return {
-          name: parts.slice(1).join(" "),
-          honorific: parts[0] as "Mr" | "Mrs" | "Miss",
-          category: "Adult" as const, // Default to Adult for legacy data
-        };
-      }
-      
-      return {
-        name: guestName,
-        honorific: "Mr" as const, // Default honorific
-        category: "Adult" as const, // Default to Adult for legacy data
-      };
-    });
+    guestPayloads = input.guestData;
+  } else if (input.guests) {
+    // Legacy: convert string[] to GuestPayload[]
+    guestPayloads = input.guests.map((name) => ({
+      name,
+      honorific: "Mr",
+      category: "Adult",
+    }));
+  } else if (input.guest) {
+    // Legacy: convert string to GuestPayload[]
+    guestPayloads = [
+      {
+        name: input.guest,
+        honorific: "Mr",
+        category: "Adult",
+      },
+    ];
   }
-  
+
   const body = {
     cart_id: input.cart_id,
-    guests: guests,
+    guests: guestPayloads,
   };
 
   try {
@@ -226,7 +218,7 @@ export const addGuest = async (input: {
 
     revalidatePath("/cart", "layout");
 
-    const guestCount = Array.isArray(guests) ? guests.length : 0;
+    const guestCount = guestPayloads.length;
     return {
       success: true,
       message: response.message || 
@@ -252,13 +244,33 @@ export const addGuest = async (input: {
 
 export const removeGuest = async (input: {
   cart_id: number;
-  guest: string;
+  guest?: string;
+  guestData?: GuestPayload;
 }) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value || "";
+
+  // Convert to structured GuestPayload format
+  let guestPayload: GuestPayload;
+  if (input.guestData) {
+    guestPayload = input.guestData;
+  } else if (input.guest) {
+    // Legacy: convert string to GuestPayload
+    guestPayload = {
+      name: input.guest,
+      honorific: "Mr",
+      category: "Adult",
+    };
+  } else {
+    return {
+      success: false,
+      message: "Guest data is required",
+    };
+  }
+
   const body = {
     cart_id: input.cart_id,
-    guest: [input.guest],
+    guest: guestPayload,
   };
 
   try {
@@ -349,6 +361,59 @@ export const selectGuest = async (input: {
       success: false,
       message:
         error instanceof Error ? error.message : "Failed to select guest",
+    };
+  }
+};
+
+export const updateAdditionalNotes = async (input: {
+  sub_cart_id: number;
+  additional_notes: string;
+}) => {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value || "";
+  const body = {
+    ...input,
+  };
+
+  try {
+    const response = await apiCall(`bookings/cart/sub-notes`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status !== 200) {
+      return {
+        success: false,
+        message: response.message || "Failed to update additional notes",
+      };
+    }
+
+    revalidatePath("/cart", "layout");
+
+    return {
+      success: true,
+      message:
+        response.message || "Additional notes have been successfully updated",
+    };
+  } catch (error) {
+    console.error("Error updating additional notes:", error);
+
+    if (error && typeof error === "object" && "message" in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      };
+    }
+
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update additional notes",
     };
   }
 };

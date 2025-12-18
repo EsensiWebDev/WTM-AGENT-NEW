@@ -1,6 +1,6 @@
 "use client";
 
-import { ContactDetail } from "@/app/(protected)/cart/types";
+import { ContactDetail, GuestPayload } from "@/app/(protected)/cart/types";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import React, { useTransition } from "react";
@@ -8,9 +8,10 @@ import { SelectUserDialog } from "./dialog/select-user-dialog";
 import { ContactDetailsTable } from "./table/contact-details-table";
 import { toast } from "sonner";
 import { addGuest } from "@/app/(protected)/cart/actions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ContactDetailsSectionProps {
-  guests: string[] | null;
+  guests: (string | GuestPayload)[] | null;
   cart_id: number;
   hasBookings?: boolean;
 }
@@ -22,6 +23,7 @@ export function ContactDetailsSection({
 }: ContactDetailsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   const openGuestDialog = () => {
     if (!hasBookings) {
@@ -31,36 +33,16 @@ export function ContactDetailsSection({
     setIsDialogOpen(true);
   };
 
-  const handleAddGuest = (guests: Array<{
-    honorific: "Mr" | "Mrs" | "Miss";
-    name: string;
-    category: "Adult" | "Child";
-    age?: number;
-  }>) => {
+  const handleAddGuest = (guestData: GuestPayload[]) => {
     startTransition(async () => {
       try {
-        // Prepare structured guest data for API
-        const guestData = guests.map((guest) => ({
-          name: guest.name.trim(),
-          honorific: guest.honorific,
-          category: guest.category,
-          ...(guest.category === "Child" && guest.age !== undefined
-            ? { age: guest.age }
-            : {}),
-        }));
-
-        // Add all guests at once with structured data
-        const response = await addGuest({ 
-          cart_id: cart_id, 
-          guestData: guestData 
+        const response = await addGuest({
+          cart_id: cart_id,
+          guestData: guestData,
         });
-        
         if (response.success) {
-          const guestCount = guests.length;
-          toast.success(
-            response.message || 
-            `${guestCount} guest${guestCount > 1 ? "s" : ""} added successfully!`
-          );
+          queryClient.invalidateQueries({ queryKey: ["cart"] });
+          toast.success(response.message || "Guest(s) added successfully!");
         } else {
           toast.error(
             response.message || "Failed to add guest(s). Please try again.",
@@ -72,37 +54,46 @@ export function ContactDetailsSection({
     });
   };
 
-  // Parse guest names to extract honorifics if present
-  const parseGuestName = (fullName: string): Pick<ContactDetail, "name" | "honorific"> => {
-    const honorifics = ["Mr", "Mrs", "Miss"];
-    const parts = fullName.trim().split(" ");
-    
-    // Check if first part is an honorific
-    if (parts.length > 1 && honorifics.includes(parts[0])) {
-      return {
-        honorific: parts[0] as "Mr" | "Mrs" | "Miss",
-        name: parts.slice(1).join(" "),
-      };
+  // Parse guests to ContactDetail[]
+  const parseGuestName = (
+    guest: string | GuestPayload,
+  ): Pick<ContactDetail, "name" | "honorific" | "category" | "age"> => {
+    if (typeof guest === "string") {
+      return { name: guest };
     }
-    
     return {
-      name: fullName,
+      name: guest.name,
+      honorific: guest.honorific,
+      category: guest.category,
+      age: guest.age,
     };
   };
 
   const contactDetails: ContactDetail[] = !guests
     ? []
-    : guests.map((fullName, index) => {
-        const parsed = parseGuestName(fullName);
+    : guests.map((guest, index) => {
+        const parsed = parseGuestName(guest);
         return {
           id: `guest-${index}`,
           no: index + 1,
-          name: parsed.name,
-          honorific: parsed.honorific,
-          // Note: category and age are not available from API yet
-          // They will be populated when backend is updated
+          ...parsed,
         };
       });
+
+  // Extract existing guests as GuestPayload[] for duplicate checking
+  const existingGuests: GuestPayload[] = guests
+    ? guests
+        .filter((g): g is GuestPayload => typeof g !== "string")
+        .map((g) => ({
+          name: g.name,
+          honorific: g.honorific,
+          category: g.category,
+          age: g.age,
+        }))
+    : [];
+
+  // Calculate total pax count
+  const totalPax = contactDetails.length;
 
   return (
     <div className="space-y-4">
@@ -118,15 +109,20 @@ export function ContactDetailsSection({
           Add Guest
         </Button>
       </div>
-
-      {!hasBookings ? (
-        <div className="text-muted-foreground py-8 text-center">
-          <p>No bookings in cart yet.</p>
-          <p className="text-sm">
-            Please add a booking to your cart before adding guests.
-          </p>
+      {totalPax > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-900">
+              Total Guests:
+            </span>
+            <span className="text-lg font-bold text-blue-700">
+              {totalPax} {totalPax === 1 ? "Pax" : "Pax"}
+            </span>
+          </div>
         </div>
-      ) : contactDetails.length === 0 ? (
+      )}
+
+      {contactDetails.length === 0 ? (
         <div className="text-muted-foreground py-8 text-center">
           <p>No guests added yet.</p>
           <p className="text-sm">
@@ -141,6 +137,7 @@ export function ContactDetailsSection({
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onAddGuest={handleAddGuest}
+        existingGuests={existingGuests}
       />
     </div>
   );

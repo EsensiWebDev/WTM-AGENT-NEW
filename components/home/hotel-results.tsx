@@ -17,6 +17,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
 import { formatUrl } from "@/lib/url-utils";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
+import { getPriceForCurrency } from "@/lib/price-utils";
 import { format } from "date-fns";
 import { ChevronsLeft, ChevronsRight, Search } from "lucide-react";
 import Image from "next/image";
@@ -34,7 +36,20 @@ const HotelResults = ({ promise }: HotelResultsProps) => {
 
   const { status } = hotelsData;
 
-  if (status !== 200) return "Error loading data";
+  console.log("[HotelResults] Data received:", {
+    status,
+    hotelsCount: hotelsData.data?.hotels?.length || 0,
+    pagination: hotelsData.data?.pagination,
+    message: hotelsData.message,
+  });
+
+  if (status !== 200) {
+    console.error("[HotelResults] Error loading data:", {
+      status,
+      message: hotelsData.message,
+    });
+    return "Error loading data";
+  }
 
   return (
     <section className="grid auto-rows-min grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:col-span-3 lg:grid-cols-3">
@@ -106,6 +121,13 @@ const HotelList = ({ promise }: HotelListProps) => {
     pagination,
   } = hotelsData;
   const pageCount = pagination?.total_pages || 1;
+
+  console.log("[HotelList] Rendering hotel list:", {
+    hotelsCount: hotels?.length || 0,
+    pageCount,
+    currentPage: pagination?.current_page || 1,
+    totalHotels: pagination?.total || 0,
+  });
 
   const [page, setPage] = useQueryState(
     "page",
@@ -264,11 +286,14 @@ interface HotelCardProps {
 const HotelCard = ({ hotel }: HotelCardProps) => {
   const searchParams = useSearchParams();
   const [imgError, setImgError] = React.useState(false);
+  const agentCurrency = useAgentCurrency();
 
-  // Get today and tomorrow dates
+  // Get tomorrow and day after tomorrow dates (users can't book for today)
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
   // Create a new URLSearchParams object with default date values
   const params = new URLSearchParams(searchParams.toString());
@@ -276,14 +301,34 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
 
   // Add default values for 'from' and 'to' parameters if not present
   if (!params.has("from")) {
-    params.set("from", format(today, "yyyy-MM-dd"));
+    params.set("from", format(tomorrow, "yyyy-MM-dd"));
   }
   if (!params.has("to")) {
-    params.set("to", format(tomorrow, "yyyy-MM-dd"));
+    params.set("to", format(dayAfterTomorrow, "yyyy-MM-dd"));
   }
 
   const stringQuery = params.toString();
   const href = `/hotel/${hotel.id}?${stringQuery}`;
+
+  // Prefer currency from API if available, otherwise fall back to selected/display currency from URL,
+  // and finally use agent's default currency from profile
+  const selectedCurrency = searchParams.get("currency") || agentCurrency;
+  const currency = hotel.currency || selectedCurrency;
+  
+  // Get the price for the selected currency from prices object, or fall back to min_price
+  const displayPrice = getPriceForCurrency(hotel.prices, hotel.min_price, currency);
+
+  React.useEffect(() => {
+    console.log("[HotelCard] Rendering hotel:", {
+      hotelId: hotel.id,
+      hotelName: hotel.name,
+      minPrice: hotel.min_price,
+      prices: hotel.prices,
+      selectedCurrency,
+      finalCurrency: currency,
+      displayPrice,
+    });
+  }, [hotel.id, hotel.currency, selectedCurrency, currency, displayPrice]);
 
   return (
     <Link href={href} className="flex">
@@ -318,7 +363,7 @@ const HotelCard = ({ hotel }: HotelCardProps) => {
             <div className="text-xs">
               Start from{" "}
               <span className="text-sm font-semibold sm:text-base">
-                {formatCurrency(hotel.min_price, "IDR")}
+                {formatCurrency(displayPrice, currency)}
               </span>
             </div>
             <span className="text-xs leading-relaxed">per room, per night</span>

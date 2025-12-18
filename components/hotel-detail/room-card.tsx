@@ -6,16 +6,19 @@ import {
 } from "@/app/(protected)/hotel/[id]/actions";
 import { RoomType } from "@/app/(protected)/hotel/[id]/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Minus, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ChevronRight, Minus, Plus, Shield } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Spinner } from "../ui/spinner";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 import { AdditionalServices } from "./additional-services";
+import { AddToCartSummaryDialog } from "./add-to-cart-summary-dialog";
 import { BedTypeSelection } from "./bed-type-selection";
+import { OtherPreferences } from "./other-preferences";
 import { PromoSelection } from "./promo-selection";
 import RoomDetailsDialog from "./room-details-dialog";
 import { RoomFeatures } from "./room-features";
@@ -25,13 +28,41 @@ import { RoomOptions } from "./room-options";
 export default function RoomCard({ room }: { room: RoomType }) {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [summaryData, setSummaryData] = useState<{
+    roomName: string;
+    checkInDate: string;
+    checkOutDate: string;
+    quantity: number;
+    bedType: string;
+    additionalServices: typeof room.additional;
+    otherPreferences: NonNullable<typeof room.other_preferences>;
+    isBreakfast: boolean;
+    roomOption: { 
+      label: string; 
+      price: number; 
+      prices?: Record<string, number>;
+      promo?: typeof room.promos[0];
+    };
+    additionalNotes?: string;
+  } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<number>(0);
   const [roomQuantity, setRoomQuantity] = useState(1);
-  const [selectedAdditionals, setSelectedAdditionals] = useState<string[]>([]);
+  
+  // Initialize selectedAdditionals with required services
+  const [selectedAdditionals, setSelectedAdditionals] = useState<string[]>(() => {
+    return room.additional
+      .filter((add) => add.is_required === true)
+      .map((add) => String(add.id));
+  });
+  
+  const [selectedOtherPreferences, setSelectedOtherPreferences] = useState<number[]>([]);
+  const [selectedBedType, setSelectedBedType] = useState<string | null>(
+    room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
+  );
   const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
-  const [selectedBedType, setSelectedBedType] = useState<string>("");
+  const [additionalNotes, setAdditionalNotes] = useState<string>("");
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   const roomImages = room.photos || [];
 
@@ -70,22 +101,18 @@ export default function RoomCard({ room }: { room: RoomType }) {
   const resetForm = () => {
     setSelectedRoom(0);
     setRoomQuantity(1);
-    // Keep required services selected even after reset
-    if (room.additional && room.additional.length > 0) {
-      const requiredServiceIds = room.additional
-        .filter((service) => service.is_required)
-        .map((service) => String(service.id));
-      setSelectedAdditionals(requiredServiceIds);
-    } else {
-      setSelectedAdditionals([]);
-    }
+    // Reset to required services only
+    setSelectedAdditionals(
+      room.additional
+        .filter((add) => add.is_required === true)
+        .map((add) => String(add.id))
+    );
+    setSelectedOtherPreferences([]);
+    setSelectedBedType(
+      room.bed_types && room.bed_types.length > 0 ? room.bed_types[0] : null
+    );
     setSelectedPromo(null);
-    // Reset bed type, but auto-select if only one option
-    if (room.bed_types && room.bed_types.length === 1) {
-      setSelectedBedType(room.bed_types[0]);
-    } else {
-      setSelectedBedType("");
-    }
+    setAdditionalNotes("");
   };
 
   const handleAdditionalChange = (serviceId: string, checked: boolean) => {
@@ -104,14 +131,68 @@ export default function RoomCard({ room }: { room: RoomType }) {
     setSelectedPromo(promoId);
   };
 
+  const handleOtherPreferenceChange = (preferenceId: number, checked: boolean) => {
+    setSelectedOtherPreferences((prev) => {
+      if (checked) {
+        return prev.includes(preferenceId) ? prev : [...prev, preferenceId];
+      } else {
+        return prev.filter((id) => id !== preferenceId);
+      }
+    });
+  };
+
+  // Handle quantity increment with booking limit validation
+  const handleIncrementQuantity = () => {
+    const bookingLimit = room.booking_limit_per_booking;
+    
+    // If there's a booking limit, check if incrementing would exceed it
+    if (bookingLimit !== null && bookingLimit !== undefined && bookingLimit > 0) {
+      if (roomQuantity >= bookingLimit) {
+        toast.error(
+          `Booking limit reached: Maximum ${bookingLimit} room${bookingLimit > 1 ? 's' : ''} allowed per booking for this room type.`,
+          { duration: 4000 }
+        );
+        return;
+      }
+    }
+    
+    setRoomQuantity(roomQuantity + 1);
+  };
+
+  // Handle quantity decrement
+  const handleDecrementQuantity = () => {
+    setRoomQuantity(Math.max(1, roomQuantity - 1));
+  };
+
   const handleAddToCart = async () => {
     if (!from || !to) {
       toast.error("Please select a check-in and check-out date.");
       return;
     }
 
-    // Validate bed type selection if multiple bed types exist
-    if (room.bed_types && room.bed_types.length > 1 && !selectedBedType) {
+    // Validate booking limit (client-side check - backend will also validate)
+    const bookingLimit = room.booking_limit_per_booking;
+    if (bookingLimit !== null && bookingLimit !== undefined && bookingLimit > 0) {
+      if (roomQuantity > bookingLimit) {
+        toast.error(
+          `Booking limit exceeded: Maximum ${bookingLimit} room${bookingLimit > 1 ? 's' : ''} allowed per booking for ${room.name}.`,
+          { duration: 5000 }
+        );
+        return;
+      }
+    }
+
+    // Get selected additional services with names
+    const selectedAdditionalsWithNames = room.additional
+      .filter((add) => selectedAdditionals.includes(String(add.id)))
+      .map((add) => ({ id: add.id, name: add.name }));
+
+    // Get selected other preferences with names
+    const selectedOtherPreferencesWithNames = room.other_preferences
+      ?.filter((pref) => selectedOtherPreferences.includes(pref.id))
+      .map((pref) => ({ id: pref.id, name: pref.name })) || [];
+
+    if (!selectedBedType) {
       toast.error("Please select a bed type.");
       return;
     }
@@ -123,7 +204,11 @@ export default function RoomCard({ room }: { room: RoomType }) {
       quantity: roomQuantity,
       room_price_id: selectedRoom,
       room_type_additional_ids: selectedAdditionals.map((id) => Number(id)),
-      bed_type: selectedBedType || room.bed_types?.[0] || undefined,
+      other_preference_ids: selectedOtherPreferences,
+      additionals: selectedAdditionalsWithNames,
+      other_preferences: selectedOtherPreferencesWithNames,
+      bed_type: selectedBedType,
+      additional_notes: additionalNotes.trim() || undefined,
     } as AddToCartRequest;
 
     startTransition(async () => {
@@ -133,14 +218,45 @@ export default function RoomCard({ room }: { room: RoomType }) {
         queryClient.invalidateQueries({
           queryKey: ["cart"],
         });
-        resetForm();
-        toast.success(message || "Room added to cart successfully", {
-          action: {
-            label: "View Cart",
-            onClick: () => router.push("/cart"),
+        
+        // Prepare summary data for dialog before resetting form
+        const isBreakfast = selectedRoom === room.with_breakfast.id;
+        const selectedPriceOption = isBreakfast ? room.with_breakfast : room.without_breakfast;
+        const selectedAdditionalServices = room.additional.filter((add) =>
+          selectedAdditionals.includes(String(add.id))
+        );
+        const selectedOtherPrefs = room.other_preferences?.filter((pref) =>
+          selectedOtherPreferences.includes(pref.id)
+        ) || [];
+
+        // Get the promo object if applicable
+        const selectedPromoObj = room.promos?.find(
+          (p) => String(p.promo_id) === selectedPromo,
+        );
+
+        // Store summary data before resetting
+        setSummaryData({
+          roomName: room.name,
+          checkInDate: from!,
+          checkOutDate: to!,
+          quantity: roomQuantity,
+          bedType: selectedBedType!,
+          additionalServices: selectedAdditionalServices,
+          otherPreferences: selectedOtherPrefs || [],
+          isBreakfast,
+          roomOption: {
+            label: isBreakfast ? "With Breakfast" : "Without Breakfast",
+            price: selectedPriceOption.price,
+            prices: selectedPriceOption.prices,
+            promo: selectedPromoObj,
           },
-          duration: 5000,
+          additionalNotes: additionalNotes.trim() || undefined,
         });
+
+        resetForm();
+        
+        // Show summary dialog instead of toast
+        setIsSummaryDialogOpen(true);
       } else {
         toast.error(message || "Failed to add room to cart. Please try again.");
       }
@@ -151,8 +267,8 @@ export default function RoomCard({ room }: { room: RoomType }) {
     { icon: "Square", text: `${room.room_size} sqm` },
     { icon: "Users", text: `${room.max_occupancy} guests` },
     {
-      icon: room.is_smoking_room ? "CigaretteOff" : "Cigarette",
-      text: room.is_smoking_room ? "Non Smoking" : "Smoking",
+      icon: room.is_smoking_room ? "Cigarette" : "CigaretteOff",
+      text: room.is_smoking_room ? "Smoking" : "Non Smoking",
     },
   ];
 
@@ -195,14 +311,39 @@ export default function RoomCard({ room }: { room: RoomType }) {
               />
             )}
 
+            {room.other_preferences && room.other_preferences.length > 0 && (
+              <OtherPreferences
+                preferences={room.other_preferences}
+                selectedPreferences={selectedOtherPreferences}
+                onPreferenceChange={handleOtherPreferenceChange}
+              />
+            )}
+
             {room.bed_types && room.bed_types.length > 0 && (
               <BedTypeSelection
                 bedTypes={room.bed_types}
                 selectedBedType={selectedBedType}
-                onSelect={setSelectedBedType}
-                required={room.bed_types.length > 1}
+                onBedTypeChange={setSelectedBedType}
               />
             )}
+
+            {/* Additional Notes Section */}
+            <div className="mt-4 sm:mt-6">
+              <Label htmlFor={`additional-notes-${room.name}`} className="mb-2 text-xs font-semibold text-gray-900 sm:text-sm">
+                Additional Notes
+              </Label>
+              <Textarea
+                id={`additional-notes-${room.name}`}
+                placeholder="Enter any special notes or instructions for the admin."
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                className="min-h-[80px] resize-y text-sm"
+                maxLength={500}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {additionalNotes.length}/500 characters
+              </p>
+            </div>
 
             <RoomFeatures features={features} />
 
@@ -217,31 +358,49 @@ export default function RoomCard({ room }: { room: RoomType }) {
             </div>
 
             <div className="mt-4 flex flex-col space-y-4 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium">Room</span>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setRoomQuantity(Math.max(1, roomQuantity - 1))
-                    }
-                    className="h-8 w-8 p-0"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-8 text-center text-sm">
-                    {roomQuantity}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRoomQuantity(roomQuantity + 1)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+              <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium">Room</span>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDecrementQuantity}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center text-sm">
+                      {roomQuantity}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleIncrementQuantity}
+                      disabled={
+                        room.booking_limit_per_booking !== null &&
+                        room.booking_limit_per_booking !== undefined &&
+                        room.booking_limit_per_booking > 0 &&
+                        roomQuantity >= room.booking_limit_per_booking
+                      }
+                      className="h-8 w-8 p-0 disabled:opacity-50"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
+                {/* Booking Limit Display */}
+                {room.booking_limit_per_booking !== null &&
+                  room.booking_limit_per_booking !== undefined &&
+                  room.booking_limit_per_booking > 0 && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>
+                        Max {room.booking_limit_per_booking} room
+                        {room.booking_limit_per_booking > 1 ? "s" : ""} per booking
+                      </span>
+                    </div>
+                  )}
               </div>
 
               <Button
@@ -262,6 +421,15 @@ export default function RoomCard({ room }: { room: RoomType }) {
           room={room}
           features={features}
         />
+
+        {/* Add to Cart Summary Dialog */}
+        {summaryData && (
+          <AddToCartSummaryDialog
+            open={isSummaryDialogOpen}
+            onOpenChange={setIsSummaryDialogOpen}
+            summary={summaryData}
+          />
+        )}
       </div>
     </Card>
   );

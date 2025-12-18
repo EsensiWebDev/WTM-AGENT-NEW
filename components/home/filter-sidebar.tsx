@@ -9,6 +9,7 @@ import {
   FilterTotalRooms,
 } from "@/app/(protected)/home/types";
 import { formatCurrency } from "@/lib/format";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
 import { cn } from "@/lib/utils";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -144,6 +145,16 @@ function PriceRangeCard({ filter_pricing }: { filter_pricing: FilterPricing }) {
       .withOptions({ shallow: false }),
   });
 
+  // Currency for displaying the range – first prefer explicit filter currency,
+  // then the selected/display currency from the URL, and finally use agent's default currency.
+  const agentCurrency = useAgentCurrency();
+  const [urlCurrency] = useQueryState(
+    "currency",
+    parseAsString.withOptions({ shallow: false }),
+  );
+  // Use agent's currency as default when URL doesn't have currency param
+  const currency = filter_pricing.currency || urlCurrency || agentCurrency;
+
   return (
     <Card className={"gap-0 rounded p-0 pb-4"}>
       <CardHeader className="mb-4 rounded-t bg-gray-200 px-4 pt-2">
@@ -164,8 +175,8 @@ function PriceRangeCard({ filter_pricing }: { filter_pricing: FilterPricing }) {
           }}
         />
         <div className="mt-2 flex items-center justify-between text-sm">
-          <span>{formatCurrency(range_price_min, "IDR")}</span>
-          <span>{formatCurrency(range_price_max, "IDR")}</span>
+          <span>{formatCurrency(range_price_min, currency)}</span>
+          <span>{formatCurrency(range_price_max, currency)}</span>
         </div>
       </div>
     </Card>

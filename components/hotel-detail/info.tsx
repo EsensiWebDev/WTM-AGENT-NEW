@@ -2,6 +2,9 @@
 
 import { NearbyPlace, SocialMedia } from "@/app/(protected)/hotel/[id]/types";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/format";
+import { useAgentCurrency } from "@/hooks/use-agent-currency";
+import { getPriceForCurrency } from "@/lib/price-utils";
 import {
   IconBrandInstagramFilled,
   IconBrandTiktokFilled,
@@ -9,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 function generateStars(rating: number) {
@@ -173,6 +177,7 @@ export function HotelInfo({
   location,
   rating,
   price,
+  prices,
   description,
   facilities,
   nearby,
@@ -182,11 +187,17 @@ export function HotelInfo({
   location: string;
   rating: number;
   price: number;
+  prices?: Record<string, number>;
   description: string;
   facilities: string[];
   nearby: NearbyPlace[];
   social_media: SocialMedia[];
 }) {
+  const searchParams = useSearchParams();
+  const agentCurrency = useAgentCurrency();
+  const selectedCurrency = searchParams.get("currency") || agentCurrency;
+  const displayPrice = getPriceForCurrency(prices, price, selectedCurrency);
+
   return (
     <>
       <div className="mb-6 grid grid-cols-1 gap-4 sm:mb-10 sm:grid-cols-3 sm:gap-8">
@@ -201,7 +212,7 @@ export function HotelInfo({
         <div className="flex flex-col items-start gap-1 sm:items-end sm:justify-end">
           <p className="text-muted-foreground text-xs sm:text-sm">Start from</p>
           <p className="text-lg font-bold sm:text-xl">
-            Rp {price.toLocaleString("id-ID")}
+            {formatCurrency(displayPrice, selectedCurrency)}
           </p>
           <p className="text-muted-foreground text-xs sm:text-sm">
             per room, per night
