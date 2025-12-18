@@ -218,7 +218,7 @@ export const addGuest = async (input: {
 
     revalidatePath("/cart", "layout");
 
-    const guestCount = Array.isArray(guests) ? guests.length : 0;
+    const guestCount = guestPayloads.length;
     return {
       success: true,
       message: response.message || 

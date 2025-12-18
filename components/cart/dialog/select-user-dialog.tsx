@@ -79,7 +79,7 @@ const guestFormSchema = z
   });
 
 type GuestFormData = z.infer<typeof guestFormSchema>;
-type GuestItem = z.infer<typeof guestItemSchema>;
+type GuestItem = GuestFormData["guests"][number];
 
 interface SelectUserDialogProps {
   open: boolean;
