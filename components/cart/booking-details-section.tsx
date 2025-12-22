@@ -122,19 +122,24 @@ const HotelRoomCard = ({ bookingDetails, guests }: HotelRoomCardProps) => {
   }, [bookingDetails.additional_notes]);
 
   // Normalize guests to string[] for Select component
+  // Exclude guests with "Child" category from the guest name dropdown
   const normalizeGuests = useMemo(() => {
     if (!guests) return [];
-    return guests.map((guest) => {
-      if (typeof guest === "string") {
-        return guest;
-      }
-      // Format: "Mr John Doe" or "Mrs Jane Doe (Child, 5 years)"
-      const ageSuffix =
-        guest.category === "Child" && guest.age
-          ? ` (${guest.category}, ${guest.age} years)`
-          : "";
-      return `${guest.honorific} ${guest.name}${ageSuffix}`;
-    });
+    return guests
+      .filter((guest) => {
+        // Exclude guests with "Child" category
+        if (typeof guest === "string") {
+          return true; // Keep string guests (legacy format)
+        }
+        return guest.category !== "Child";
+      })
+      .map((guest) => {
+        if (typeof guest === "string") {
+          return guest;
+        }
+        // Format: "Mr John Doe" or "Mrs Jane Doe"
+        return `${guest.honorific} ${guest.name}`;
+      });
   }, [guests]);
 
   // Determine if we should show placeholder

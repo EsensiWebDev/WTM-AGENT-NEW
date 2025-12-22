@@ -72,7 +72,7 @@ export function getHistoryBookingTableColumns({
       id: "booking_code",
       accessorKey: "booking_code",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="ID Booking" />
+        <DataTableColumnHeader column={column} title="Booking ID" />
       ),
       enableHiding: false,
       enableSorting: false,
