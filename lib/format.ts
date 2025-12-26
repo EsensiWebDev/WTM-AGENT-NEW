@@ -1,6 +1,6 @@
 export function formatCurrency(nominal: number, currency = "IDR"): string {
   if (currency === "IDR") {
-    return `Rp. ${new Intl.NumberFormat("id-ID").format(nominal)}`;
+    return `IDR ${new Intl.NumberFormat("id-ID").format(nominal)}`;
   }
 
   return new Intl.NumberFormat("en-US", {

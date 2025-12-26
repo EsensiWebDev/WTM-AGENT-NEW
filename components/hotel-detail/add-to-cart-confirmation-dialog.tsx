@@ -129,7 +129,7 @@ export function AddToCartConfirmationDialog({
                 )}
               </div>
               <p className="font-medium">
-                Rp {selectedOption.price.toLocaleString("id-ID")}
+                IDR {selectedOption.price.toLocaleString("id-ID")}
                 <span className="text-xs font-normal text-gray-500">
                   /night
                 </span>
@@ -153,7 +153,7 @@ export function AddToCartConfirmationDialog({
 
             <div className="mt-2 flex justify-between font-medium">
               <span>Room Total:</span>
-              <span>Rp {roomTotal.toLocaleString("id-ID")}</span>
+              <span>IDR {roomTotal.toLocaleString("id-ID")}</span>
             </div>
           </div>
 
@@ -166,7 +166,7 @@ export function AddToCartConfirmationDialog({
               <div className="mt-1 flex justify-between">
                 <span>Discount:</span>
                 <span className="font-medium text-green-600">
-                  -Rp {discount.toLocaleString("id-ID")}
+                  -IDR {discount.toLocaleString("id-ID")}
                 </span>
               </div>
             </div>
@@ -193,7 +193,7 @@ export function AddToCartConfirmationDialog({
                       </span>
                       <span>
                         {category === "price" && service.price !== undefined
-                          ? `Rp ${service.price.toLocaleString("id-ID")}`
+                          ? `IDR ${service.price.toLocaleString("id-ID")}`
                           : category === "pax" && service.pax !== undefined
                             ? `${service.pax} ${service.pax === 1 ? "person" : "people"}`
                             : "N/A"}
@@ -203,7 +203,7 @@ export function AddToCartConfirmationDialog({
                 })}
                 <div className="flex justify-between font-medium">
                   <span>Services Total:</span>
-                  <span>Rp {servicesTotal.toLocaleString("id-ID")}</span>
+                  <span>IDR {servicesTotal.toLocaleString("id-ID")}</span>
                 </div>
               </div>
             </div>
@@ -212,7 +212,7 @@ export function AddToCartConfirmationDialog({
           <div className="mt-6 border-t border-gray-200 pt-4">
             <div className="flex justify-between text-lg font-semibold">
               <span>Total:</span>
-              <span>Rp {totalPrice.toLocaleString("id-ID")}</span>
+              <span>IDR {totalPrice.toLocaleString("id-ID")}</span>
             </div>
           </div>
         </div>

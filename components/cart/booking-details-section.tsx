@@ -737,6 +737,8 @@ const BookingGrandTotalCard = ({
   const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [missingGuestsList, setMissingGuestsList] = useState<string[]>([]);
 
   // Validate that all booking details have guests selected
   const validateGuests = (): { isValid: boolean; missingGuests: string[] } => {
@@ -770,13 +772,9 @@ const BookingGrandTotalCard = ({
     const validation = validateGuests();
     
     if (!validation.isValid) {
-      const missingList = validation.missingGuests.join(", ");
-      toast.error(
-        `Please select a guest for all bookings before checkout. Missing guests for: ${missingList}`,
-        {
-          duration: 5000,
-        }
-      );
+      // Store missing guests list and show validation dialog
+      setMissingGuestsList(validation.missingGuests);
+      setShowValidationDialog(true);
       return;
     }
 
@@ -865,6 +863,46 @@ const BookingGrandTotalCard = ({
           )}
         </Button>
       </div>
+
+      <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600">
+              Guest Selection Required
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              Please select a guest for all room bookings before proceeding with checkout.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="my-4">
+            <p className="mb-2 text-sm font-medium text-gray-700">
+              Missing guest selections for:
+            </p>
+            <ul className="max-h-60 space-y-2 overflow-y-auto rounded-md bg-red-50 p-4">
+              {missingGuestsList.map((missingGuest, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm text-gray-800"
+                >
+                  <span className="mt-0.5 text-red-600">•</span>
+                  <span>{missingGuest}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm text-gray-600">
+              Please go back to each booking and select a guest name from the dropdown menu.
+            </p>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowValidationDialog(false)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
